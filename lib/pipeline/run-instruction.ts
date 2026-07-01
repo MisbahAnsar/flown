@@ -53,11 +53,12 @@ export async function runInstructionPipeline(
   context: PipelineContext,
   deps: PipelineDeps = {},
 ): Promise<PipelineResult> {
-  const { instructionText, walletAddress, userId, githubAccessToken } = context;
+  const { instructionText, walletAddress, userId, githubAccessToken, selectedRepo } =
+    context;
 
   logPipeline("pipeline", "run started", { userId });
 
-  const interpreted = interpret(instructionText);
+  const interpreted = interpret(instructionText, { selectedRepo });
   if (!interpreted.success) {
     logPipeline("interpreter", "failed", { userId, error: interpreted.error });
     return {
@@ -105,11 +106,19 @@ export async function runInstructionPipeline(
     };
   }
 
-  logPipeline("fetcher", "notifications fetched", {
-    userId,
-    instructionId: taskPlan.instructionId,
-    count: fetched.result.data.length,
-  });
+  logPipeline(
+    "fetcher",
+    fetched.result.intent === "summarize_github_repo"
+      ? "repository fetched"
+      : "notifications fetched",
+    {
+      userId,
+      instructionId: taskPlan.instructionId,
+      ...(fetched.result.intent === "summarize_github_repo"
+        ? { repo: fetched.result.data.fullName }
+        : { count: fetched.result.data.length }),
+    },
+  );
 
   const thought = await think(
     taskPlan,

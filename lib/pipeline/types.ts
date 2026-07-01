@@ -3,6 +3,7 @@ import { z } from "zod";
 export const RunInstructionRequestSchema = z.object({
   instructionText: z.string().trim().min(1).max(500),
   walletAddress: z.string().trim().min(1),
+  selectedRepo: z.string().trim().min(3).optional().nullable(),
 });
 
 export type PipelineStep =
@@ -28,10 +29,11 @@ export type PipelineErrorResponse = {
     };
     taskPlan: {
       instructionId: string;
-      intent: "summarize_github_notifications";
+      intent: "summarize_github_notifications" | "summarize_github_repo";
       tool: "github";
       outputFormat: "summary";
       createdAt: string;
+      repoFullName?: string;
     };
   };
 };
@@ -48,4 +50,5 @@ export type PipelineContext = {
   walletAddress: string;
   userId: string;
   githubAccessToken: string;
+  selectedRepo?: string | null;
 };

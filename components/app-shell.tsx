@@ -9,8 +9,13 @@ import { trackAuditTrailViewed } from "@/lib/monitoring/analytics";
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<AppTab>("chat");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [chatSessionKey, setChatSessionKey] = useState(0);
 
   function selectTab(tab: AppTab) {
+    if (tab === "chat" && activeTab === "chat") {
+      setChatSessionKey((value) => value + 1);
+    }
+
     setActiveTab(tab);
     if (tab === "audit") {
       trackAuditTrailViewed();
@@ -18,7 +23,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1">
+    <div className="flex h-full min-h-0 w-full">
       <AppSidebar
         open={sidebarOpen}
         onToggle={() => setSidebarOpen((value) => !value)}
@@ -26,9 +31,15 @@ export function AppShell() {
         onTabChange={selectTab}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-white pt-[22vh]">
-        {activeTab === "chat" ? <InstructionPanel /> : <AuditTrailPanel />}
-      </div>
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+        {activeTab === "chat" ? (
+          <InstructionPanel key={chatSessionKey} />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+            <AuditTrailPanel />
+          </div>
+        )}
+      </main>
     </div>
   );
 }

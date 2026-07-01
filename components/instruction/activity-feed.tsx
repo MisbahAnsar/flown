@@ -27,7 +27,7 @@ export const FEED_STEPS: Array<{
   {
     id: "fetcher",
     label: "Fetcher",
-    description: "Reading unread GitHub notifications",
+    description: "Reading from GitHub",
   },
   {
     id: "thinker",

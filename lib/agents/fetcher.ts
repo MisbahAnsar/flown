@@ -1,4 +1,8 @@
 import { getUnreadNotifications } from "@/lib/github/client";
+import {
+  getLatestUserRepository,
+  getRepositoryDetails,
+} from "@/lib/github/repo-details";
 import type { GitHubClientDeps } from "@/lib/github/types";
 import type { TaskPlan } from "./types";
 import type { FetcherDeps, FetcherResult } from "./fetcher-types";
@@ -42,6 +46,36 @@ export async function fetch(
           source: "github",
           intent: taskPlan.intent,
           data: githubResult.notifications,
+        },
+      };
+    }
+    case "summarize_github_repo": {
+      const repoResult = taskPlan.repoFullName
+        ? await getRepositoryDetails(
+            accessToken,
+            taskPlan.repoFullName,
+            githubDeps,
+          )
+        : await getLatestUserRepository(accessToken, githubDeps);
+
+      if (!repoResult.success) {
+        return {
+          success: false,
+          error: {
+            code: "github_error",
+            message: repoResult.error.message,
+            retryAfterSeconds: repoResult.error.retryAfterSeconds,
+          },
+        };
+      }
+
+      return {
+        success: true,
+        result: {
+          instructionId: taskPlan.instructionId,
+          source: "github",
+          intent: taskPlan.intent,
+          data: repoResult.repo,
         },
       };
     }

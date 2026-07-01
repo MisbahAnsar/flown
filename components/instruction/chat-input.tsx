@@ -30,7 +30,7 @@ export function buildInstructionText(
   }
 
   if (selectedRepo) {
-    return `Summarize my GitHub notifications for repository ${selectedRepo}`;
+    return `Summarize ${selectedRepo} from its README and description`;
   }
 
   return SUPPORTED_INSTRUCTION_EXAMPLE;

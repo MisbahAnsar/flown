@@ -69,4 +69,50 @@ describe("think", () => {
     expect(result.usedAi).toBe(false);
     expect(result.summary).toContain("Add thinker agent");
   });
+
+  test("falls back to deterministic repo summary without Gemini config", async () => {
+    const previous = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+
+    const repoTaskPlan: TaskPlan = {
+      ...taskPlan,
+      intent: "summarize_github_repo",
+      repoFullName: "flowms/core",
+    };
+
+    const repoFetched: FetchResult = {
+      instructionId: repoTaskPlan.instructionId,
+      source: "github",
+      intent: "summarize_github_repo",
+      data: {
+        fullName: "flowms/core",
+        description: "Personal agent workspace",
+        htmlUrl: "https://github.com/flowms/core",
+        readme: "# flowms\n\nBuild agents on Stellar.",
+        language: "TypeScript",
+        stargazersCount: 3,
+        updatedAt: "2026-06-30T12:00:00Z",
+        defaultBranch: "main",
+      },
+    };
+
+    const result = await think(
+      repoTaskPlan,
+      repoFetched,
+      "Summarize my latest repo from README",
+    );
+
+    if (previous) {
+      process.env.GEMINI_API_KEY = previous;
+    }
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+
+    expect(result.usedAi).toBe(false);
+    expect(result.summary).toContain("flowms/core");
+    expect(result.summary).toContain("Personal agent workspace");
+  });
 });

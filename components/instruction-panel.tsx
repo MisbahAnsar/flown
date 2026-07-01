@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   postRetryLogging,
   postRunInstruction,
-  stellarExpertTxUrl,
 } from "@/lib/pipeline/client";
 import type { PipelineErrorResponse } from "@/lib/pipeline/types";
 import { useAuditRefresh } from "@/components/audit/audit-refresh-context";
@@ -24,7 +23,7 @@ import {
   applyRetryActorSteps,
   startPipelineSteps,
 } from "@/components/instruction/activity-feed";
-import { ActivityFeed } from "@/components/instruction/activity-feed-ui";
+import { PipelineLiveDisplay } from "@/components/instruction/pipeline-live-display";
 import {
   buildInstructionText,
   ChatInput,
@@ -33,7 +32,6 @@ import {
   RunHistory,
   type InstructionRun,
 } from "@/components/instruction/run-history";
-import { SummaryDisplay } from "@/components/instruction/summary-display";
 import { useGitHubRepos } from "@/lib/github/repos-client";
 
 function createRunId(): string {
@@ -73,6 +71,7 @@ export function InstructionPanel() {
   const isWalletReady = !!publicKey;
   const isReady = isGitHubReady && isWalletReady;
   const isChecking = authStatus === "loading" || walletLoading;
+  const showWelcome = runs.length === 0;
 
   const {
     repos,
@@ -138,6 +137,7 @@ export function InstructionPanel() {
     const result = await postRunInstruction({
       instructionText,
       walletAddress: publicKey,
+      selectedRepo,
     });
 
     clearProgressTimer();
@@ -269,133 +269,121 @@ export function InstructionPanel() {
     !!activeRun.error.retryLogging;
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col bg-white px-4 pb-8 sm:px-6 sm:pb-10">
-      <div className="mx-auto w-full min-w-0 max-w-3xl">
-        <div className="mb-8 text-center">
-          <h1 className="font-heading text-3xl text-zinc-900 sm:text-4xl">
-            Workspace
-          </h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-zinc-600 sm:text-base">
-            Connect GitHub from the chat bar, pick a repository, and run an
-            instruction through the agent pipeline.
-          </p>
-        </div>
-
-        {isChecking && (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
-            <span
-              className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-800"
-              aria-hidden
-            />
-            <p className="text-sm text-zinc-600">Loading session...</p>
-          </div>
-        )}
-
-        <RunHistory
-          runs={runs}
-          activeRunId={activeRun?.id ?? null}
-          onSelect={setActiveRunId}
-        />
-
-        {globalError && (
-          <div
-            className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4"
-            role="alert"
-          >
-            <p className="text-sm font-medium text-red-800">
-              {pipelineErrorTitle(globalError.step)}
-            </p>
-            <p className="mt-1 text-sm text-red-700">
-              {globalError.error}
-              {globalError.retryAfterSeconds
-                ? ` Try again in ${globalError.retryAfterSeconds}s.`
-                : ""}
-            </p>
-          </div>
-        )}
-
-        {activeRun && (
-          <section className="mb-6 space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                Live activity
-              </p>
-              <div className="mt-3">
-                <ActivityFeed steps={activeRun.steps} />
-              </div>
-            </div>
-
-            {activeRun.status === "error" && activeRun.error && (
-              <div
-                className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4"
-                role="alert"
-              >
-                <p className="text-sm font-medium text-red-800">
-                  {pipelineErrorTitle(activeRun.error.step)}
-                </p>
-                <p className="mt-1 text-sm text-red-700">
-                  {activeRun.error.error}
-                </p>
-                {showRetryLogging && (
-                  <button
-                    type="button"
-                    onClick={handleRetryLogging}
-                    disabled={isRetrying}
-                    className="mt-3 inline-flex rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100 disabled:opacity-60"
-                  >
-                    {isRetrying ? "Retrying..." : "Retry on-chain logging"}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {activeRun.status === "success" && activeRun.summary && (
-              <div className="space-y-3">
-                <SummaryDisplay summary={activeRun.summary} />
-                {activeRun.stellarTxHash && (
-                  <a
-                    href={stellarExpertTxUrl(activeRun.stellarTxHash)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex text-sm font-medium text-zinc-900 underline underline-offset-2"
-                  >
-                    View transaction on Stellar Expert
-                  </a>
-                )}
-                {!dismissedFeedbackRunIds.has(activeRun.id) && (
-                  <PostSuccessFeedback
-                    runId={activeRun.id}
-                    onDismiss={(runId) =>
-                      setDismissedFeedbackRunIds((current) =>
-                        new Set(current).add(runId),
-                      )
-                    }
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-white">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 sm:px-6">
+          {showWelcome ? (
+            <div className="flex flex-1 flex-col items-center justify-center px-2 py-10 text-center">
+              {isChecking ? (
+                <div className="mb-8 flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
+                  <span
+                    className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-800"
+                    aria-hidden
                   />
-                )}
-              </div>
-            )}
-          </section>
-        )}
+                  <p className="text-sm text-zinc-600">Loading session...</p>
+                </div>
+              ) : (
+                <>
+                  <h1 className="font-heading text-3xl text-zinc-900 sm:text-4xl">
+                    Workspace
+                  </h1>
+                  <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-600 sm:text-base">
+                    Connect GitHub from the chat bar, pick a repository, and run
+                    an instruction through the agent pipeline.
+                  </p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col py-6">
+              {runs.length > 1 && (
+                <RunHistory
+                  runs={runs}
+                  activeRunId={activeRun?.id ?? null}
+                  onSelect={setActiveRunId}
+                />
+              )}
 
-        <ChatInput
-          value={instruction}
-          onChange={setInstruction}
-          isGitHubConnected={isGitHubReady}
-          repos={repos}
-          reposLoading={reposLoading}
-          reposError={reposError}
-          selectedRepo={selectedRepo}
-          onSelectRepo={setSelectedRepo}
-          canRun={isReady && !isChecking}
-          isSubmitting={isSubmitting}
-          onSubmit={() => void handleSubmit()}
-        />
+              {globalError && (
+                <div
+                  className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4"
+                  role="alert"
+                >
+                  <p className="text-sm font-medium text-red-800">
+                    {pipelineErrorTitle(globalError.step)}
+                  </p>
+                  <p className="mt-1 text-sm text-red-700">
+                    {globalError.error}
+                    {globalError.retryAfterSeconds
+                      ? ` Try again in ${globalError.retryAfterSeconds}s.`
+                      : ""}
+                  </p>
+                </div>
+              )}
 
-        {!isReady && !isChecking && isWalletReady && !isGitHubReady && (
-          <p className="mt-3 text-sm text-zinc-500">
-            Connect GitHub in the chat bar to enable Run.
-          </p>
-        )}
+              {activeRun && (
+                <section className="space-y-4">
+                  <PipelineLiveDisplay
+                    steps={activeRun.steps}
+                    status={activeRun.status}
+                    summary={activeRun.summary}
+                    stellarTxHash={activeRun.stellarTxHash}
+                    errorMessage={activeRun.error?.error}
+                  />
+
+                  {activeRun.status === "error" && showRetryLogging && (
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={handleRetryLogging}
+                        disabled={isRetrying}
+                        className="inline-flex rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-50 disabled:opacity-60"
+                      >
+                        {isRetrying ? "Retrying..." : "Retry on-chain logging"}
+                      </button>
+                    </div>
+                  )}
+
+                  {activeRun.status === "success" &&
+                    !dismissedFeedbackRunIds.has(activeRun.id) && (
+                      <PostSuccessFeedback
+                        runId={activeRun.id}
+                        onDismiss={(runId) =>
+                          setDismissedFeedbackRunIds((current) =>
+                            new Set(current).add(runId),
+                          )
+                        }
+                      />
+                    )}
+                </section>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="shrink-0 border-t border-zinc-100 bg-white px-4 pb-5 pt-3 sm:px-6">
+        <div className="mx-auto w-full max-w-3xl">
+          <ChatInput
+            value={instruction}
+            onChange={setInstruction}
+            isGitHubConnected={isGitHubReady}
+            repos={repos}
+            reposLoading={reposLoading}
+            reposError={reposError}
+            selectedRepo={selectedRepo}
+            onSelectRepo={setSelectedRepo}
+            canRun={isReady && !isChecking}
+            isSubmitting={isSubmitting}
+            onSubmit={() => void handleSubmit()}
+          />
+
+          {!isReady && !isChecking && isWalletReady && !isGitHubReady && (
+            <p className="mt-2 text-center text-sm text-zinc-500">
+              Connect GitHub in the chat bar to enable Run.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -408,7 +396,7 @@ function pipelineErrorTitle(
     case "interpreter":
       return "Instruction not understood";
     case "fetcher":
-      return "Could not fetch GitHub notifications";
+      return "Could not fetch GitHub data";
     case "thinker":
       return "Could not generate an AI summary";
     case "actor":

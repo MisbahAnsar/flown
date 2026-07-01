@@ -61,7 +61,7 @@ export function AppSidebar({
 
   return (
     <aside
-      className={`relative z-10 flex h-full min-h-0 shrink-0 flex-col self-stretch border-r border-zinc-200 bg-white transition-[width] duration-300 ease-in-out ${
+      className={`relative z-10 flex h-full min-h-0 shrink-0 flex-col border-r border-zinc-200 bg-white transition-[width] duration-300 ease-in-out ${
         open ? "w-56" : "w-14"
       }`}
     >

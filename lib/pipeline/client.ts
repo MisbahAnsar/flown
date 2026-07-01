@@ -10,6 +10,7 @@ export type PipelineApiResult =
 export async function postRunInstruction(input: {
   instructionText: string;
   walletAddress: string;
+  selectedRepo?: string | null;
 }): Promise<PipelineApiResult> {
   const response = await fetch("/api/run-instruction", {
     method: "POST",

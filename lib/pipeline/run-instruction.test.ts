@@ -92,7 +92,7 @@ describe("runInstructionPipeline", () => {
 
     expect(result.status).toBe(400);
     expect(result.error.step).toBe("interpreter");
-    expect(result.error.error).toContain("Only one instruction type is supported");
+    expect(result.error.error).toContain("Could not understand");
   });
 
   test("returns fetcher step error for expired GitHub tokens", async () => {
@@ -150,5 +150,58 @@ describe("runInstructionPipeline", () => {
     expect(result.error.retryLogging?.taskPlan.intent).toBe(
       "summarize_github_notifications",
     );
+  });
+
+  test("runs repo summary pipeline for README instructions", async () => {
+    const result = await runInstructionPipeline(
+      {
+        ...context,
+        instructionText:
+          "summarize my latest repo and give me details from README and description",
+      },
+      {
+        fetcher: {
+          github: {
+            fetchFn: async (url) => {
+              if (String(url).includes("user/repos")) {
+                return new Response(
+                  JSON.stringify([
+                    {
+                      full_name: "flowms/core",
+                      description: "Agent workspace",
+                      html_url: "https://github.com/flowms/core",
+                      language: "TypeScript",
+                      stargazers_count: 4,
+                      updated_at: "2026-06-30T12:00:00Z",
+                      default_branch: "main",
+                    },
+                  ]),
+                  { status: 200 },
+                );
+              }
+              if (String(url).includes("/readme")) {
+                return new Response("# flowms\n\nOn-chain agent logs.", {
+                  status: 200,
+                });
+              }
+              return new Response("[]", { status: 200 });
+            },
+          },
+        },
+        contractClient: createMockContractClient(async () => ({
+          success: true,
+          txHash: "repo-pipeline-tx",
+          actionId: BigInt(2),
+        })),
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.data.summary).toContain("flowms/core");
+    expect(result.data.stellarTxHash).toBe("repo-pipeline-tx");
   });
 });

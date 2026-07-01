@@ -97,4 +97,48 @@ describe("fetch", () => {
     expect(result.error.message).toContain("rate limit");
     expect(result.error.retryAfterSeconds).toBe(120);
   });
+
+  test("fetches repository details for summarize_github_repo", async () => {
+    const repoTaskPlan: TaskPlan = {
+      ...taskPlan,
+      intent: "summarize_github_repo",
+      repoFullName: "flowms/core",
+    };
+
+    const repoPayload = {
+      full_name: "flowms/core",
+      description: "Agent workspace core",
+      html_url: "https://github.com/flowms/core",
+      language: "TypeScript",
+      stargazers_count: 12,
+      updated_at: "2026-06-30T12:00:00Z",
+      default_branch: "main",
+    };
+
+    let callCount = 0;
+
+    const result = await fetch(repoTaskPlan, "ghp_test", {
+      github: {
+        fetchFn: async (url) => {
+          callCount += 1;
+          if (String(url).includes("/readme")) {
+            return new Response("# flowms core\n\nPersonal agent workspace.", {
+              status: 200,
+            });
+          }
+          return new Response(JSON.stringify(repoPayload), { status: 200 });
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+
+    expect(result.result.intent).toBe("summarize_github_repo");
+    expect(result.result.data.fullName).toBe("flowms/core");
+    expect(result.result.data.readme).toContain("Personal agent workspace");
+    expect(callCount).toBe(2);
+  });
 });

@@ -86,6 +86,7 @@ export async function POST(request: Request) {
       walletAddress,
       userId: session.user.id,
       githubAccessToken,
+      selectedRepo: parsed.data.selectedRepo ?? null,
     });
 
     if (!result.ok) {

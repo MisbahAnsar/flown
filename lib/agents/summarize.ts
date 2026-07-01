@@ -39,3 +39,36 @@ export function summarizeGitHubNotifications(
 
   return `${header}\n\n${sections.join("\n\n")}${footer}`;
 }
+
+export function summarizeGitHubRepo(repo: {
+  fullName: string;
+  description: string | null;
+  htmlUrl: string;
+  readme: string | null;
+  language: string | null;
+  stargazersCount: number;
+}): string {
+  const lines = [
+    `# ${repo.fullName}`,
+    "",
+    repo.description?.trim()
+      ? repo.description.trim()
+      : "No repository description provided on GitHub.",
+    "",
+    `- Language: ${repo.language ?? "Not specified"}`,
+    `- Stars: ${repo.stargazersCount}`,
+    `- Repository: ${repo.htmlUrl}`,
+  ];
+
+  if (repo.readme?.trim()) {
+    const excerpt =
+      repo.readme.length > 1200
+        ? `${repo.readme.slice(0, 1200).trim()}\n\n[README truncated]`
+        : repo.readme.trim();
+    lines.push("", "## README excerpt", "", excerpt);
+  } else {
+    lines.push("", "_No README.md found for this repository._");
+  }
+
+  return lines.join("\n");
+}

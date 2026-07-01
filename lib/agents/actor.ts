@@ -81,7 +81,8 @@ export async function act(
   deps: ActorDeps = {},
 ): Promise<ActorResult> {
   switch (taskPlan.intent) {
-    case "summarize_github_notifications": {
+    case "summarize_github_notifications":
+    case "summarize_github_repo": {
       const trimmed = summary.trim();
       if (!trimmed) {
         return {

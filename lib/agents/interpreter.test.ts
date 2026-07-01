@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   interpret,
   SUPPORTED_INSTRUCTION_EXAMPLE,
+  SUPPORTED_REPO_EXAMPLE,
 } from "./interpreter";
 
 describe("interpret", () => {
@@ -33,6 +34,33 @@ describe("interpret", () => {
     expect(result.plan.intent).toBe("summarize_github_notifications");
   });
 
+  test("accepts repo README summary instructions", () => {
+    const result = interpret(
+      "summarize my latest repo and give me details about it from description or @README.md",
+    );
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+
+    expect(result.plan.intent).toBe("summarize_github_repo");
+  });
+
+  test("uses selected repo when instruction mentions README", () => {
+    const result = interpret("Summarize this repo from README", {
+      selectedRepo: "flowms/core",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+
+    expect(result.plan.intent).toBe("summarize_github_repo");
+    expect(result.plan.repoFullName).toBe("flowms/core");
+  });
+
   test("rejects a non-matching instruction with guidance", () => {
     const result = interpret("Send a Slack message to my team");
 
@@ -41,8 +69,8 @@ describe("interpret", () => {
       return;
     }
 
-    expect(result.error).toContain("Only one instruction type is supported");
-    expect(result.error).toContain(SUPPORTED_INSTRUCTION_EXAMPLE);
+    expect(result.error).toContain("Could not understand");
+    expect(result.error).toContain(SUPPORTED_REPO_EXAMPLE);
   });
 
   test("rejects empty input", () => {
