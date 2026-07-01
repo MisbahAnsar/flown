@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FlowMind",
+  title: "flowm",
   description:
     "Natural language instructions executed by a 3-agent pipeline, logged on Stellar.",
 };

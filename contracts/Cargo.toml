@@ -1,5 +1,5 @@
 [package]
-name = "flowmind-action-log"
+name = "flowm-action-log"
 version = "0.1.0"
 edition = "2021"
 publish = false
