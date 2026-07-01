@@ -109,8 +109,9 @@ export function RoundedMenu({
       ref={ref}
       role="menu"
       className={`overflow-hidden rounded-2xl border py-1.5 ${variantClass} ${
-        portal ? "fixed z-[300]" : `absolute z-[200] ${placementClass} ${align === "right" ? "right-0" : "left-0"}`
+        portal ? "fixed z-[400]" : `absolute z-[200] ${placementClass} ${align === "right" ? "right-0" : "left-0"}`
       } ${className}`}
+      onWheel={(event) => event.stopPropagation()}
       style={
         portal && portalStyle
           ? {
@@ -180,6 +181,8 @@ export function RoundedScrollList({
     <div
       className="overflow-y-auto overscroll-contain"
       style={{ maxHeight: `${maxRows * 2.75}rem` }}
+      onWheel={(event) => event.stopPropagation()}
+      onTouchMove={(event) => event.stopPropagation()}
     >
       {children}
     </div>

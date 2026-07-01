@@ -316,8 +316,8 @@ export function InstructionPanel() {
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-white">
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+      <div className="h-0 min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+        <div className="mx-auto w-full max-w-3xl px-4 pb-6 sm:px-6">
           {globalError && (
             <div
               className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-5 py-4"
@@ -366,7 +366,7 @@ export function InstructionPanel() {
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-zinc-100 bg-white px-4 pb-4 pt-2 sm:px-6">
+      <div className="relative z-20 shrink-0 overflow-visible border-t border-zinc-100 bg-white px-4 pb-4 pt-2 sm:px-6">
         <div className="mx-auto w-full max-w-3xl">
           <ChatInput {...chatInputProps} variant="bottom" />
 

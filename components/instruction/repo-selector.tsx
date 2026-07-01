@@ -14,6 +14,7 @@ interface RepoSelectorProps {
   isLoading?: boolean;
   error?: string | null;
   disabled?: boolean;
+  menuPlacement?: "above" | "below";
 }
 
 export function RepoSelector({
@@ -23,6 +24,7 @@ export function RepoSelector({
   isLoading = false,
   error = null,
   disabled = false,
+  menuPlacement = "below",
 }: RepoSelectorProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -49,19 +51,19 @@ export function RepoSelector({
         open={open}
         onClose={() => setOpen(false)}
         align="left"
-        placement="below"
-        variant="dark"
+        placement={menuPlacement}
+        variant="light"
         portal
         rootRef={rootRef}
         className="min-w-[14rem]"
       >
         {error && (
-          <p className="px-4 py-2 text-xs text-red-400">{error}</p>
+          <p className="px-4 py-2 text-xs text-red-600">{error}</p>
         )}
         {!error && repos.length === 0 && !isLoading && (
-          <p className="px-4 py-2 text-xs text-zinc-400">No repositories found.</p>
+          <p className="px-4 py-2 text-xs text-zinc-500">No repositories found.</p>
         )}
-        <RoundedScrollList maxRows={4}>
+        <RoundedScrollList maxRows={5}>
           {repos.map((repo) => (
             <button
               key={repo.fullName}
@@ -74,8 +76,8 @@ export function RepoSelector({
               }}
               className={`block w-full truncate px-4 py-2.5 text-left text-sm transition ${
                 selectedRepo === repo.fullName
-                  ? "bg-zinc-700 font-medium text-white"
-                  : "text-zinc-200 hover:bg-zinc-700"
+                  ? "bg-zinc-100 font-medium text-zinc-900"
+                  : "text-zinc-700 hover:bg-zinc-50"
               }`}
             >
               {repo.fullName}

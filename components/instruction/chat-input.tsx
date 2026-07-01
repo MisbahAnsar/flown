@@ -99,6 +99,7 @@ export function ChatInput({
               isLoading={reposLoading}
               error={reposError}
               disabled={isSubmitting}
+              menuPlacement={isCompact ? "above" : "below"}
             />
           ) : (
             <GitHubConnectInline callbackUrl="/app" disabled={isSubmitting} />

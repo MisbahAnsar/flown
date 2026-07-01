@@ -65,7 +65,25 @@ export function AppSidebar({
         open ? "w-56" : "w-14"
       }`}
     >
-      <div className={`flex shrink-0 ${open ? "justify-end px-3 py-3" : "justify-center py-3"}`}>
+      <div
+        className={`flex shrink-0 border-b border-zinc-100 ${
+          open
+            ? "items-center justify-between px-4 py-4"
+            : "flex-col items-center gap-2 py-3"
+        }`}
+      >
+        {open ? (
+          <span className="font-heading text-2xl tracking-tight text-zinc-900">
+            flowms
+          </span>
+        ) : (
+          <span
+            className="font-heading text-xl tracking-tight text-zinc-900"
+            title="flowms"
+          >
+            f
+          </span>
+        )}
         <button
           type="button"
           onClick={onToggle}
