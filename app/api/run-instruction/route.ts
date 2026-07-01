@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const githubAccessToken = await getGitHubAccessToken();
+  const githubAccessToken = await getGitHubAccessToken(request);
   if (!githubAccessToken) {
     return NextResponse.json(
       {

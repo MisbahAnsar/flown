@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getGitHubAccessToken, getSession } from "@/lib/auth-server";
 import { getUserRepositories } from "@/lib/github/repos";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getSession();
   if (!session?.user?.id) {
     return NextResponse.json(
@@ -11,7 +11,7 @@ export async function GET() {
     );
   }
 
-  const accessToken = await getGitHubAccessToken();
+  const accessToken = await getGitHubAccessToken(request);
   if (!accessToken) {
     return NextResponse.json(
       { error: "GitHub access token is missing. Connect GitHub again." },
