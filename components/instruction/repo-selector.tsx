@@ -30,7 +30,7 @@ export function RepoSelector({
   const label = selectedRepo ?? "Select repository";
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative z-30">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -49,13 +49,17 @@ export function RepoSelector({
         open={open}
         onClose={() => setOpen(false)}
         align="left"
+        placement="below"
+        variant="dark"
+        portal
         rootRef={rootRef}
+        className="min-w-[14rem]"
       >
         {error && (
-          <p className="px-4 py-2 text-xs text-red-600">{error}</p>
+          <p className="px-4 py-2 text-xs text-red-400">{error}</p>
         )}
         {!error && repos.length === 0 && !isLoading && (
-          <p className="px-4 py-2 text-xs text-zinc-500">No repositories found.</p>
+          <p className="px-4 py-2 text-xs text-zinc-400">No repositories found.</p>
         )}
         <RoundedScrollList maxRows={4}>
           {repos.map((repo) => (
@@ -68,10 +72,10 @@ export function RepoSelector({
                 onSelect(repo.fullName);
                 setOpen(false);
               }}
-              className={`block w-full truncate px-4 py-2.5 text-left text-sm transition hover:bg-zinc-50 ${
+              className={`block w-full truncate px-4 py-2.5 text-left text-sm transition ${
                 selectedRepo === repo.fullName
-                  ? "bg-zinc-50 font-medium text-zinc-900"
-                  : "text-zinc-700"
+                  ? "bg-zinc-700 font-medium text-white"
+                  : "text-zinc-200 hover:bg-zinc-700"
               }`}
             >
               {repo.fullName}

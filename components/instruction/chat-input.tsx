@@ -57,7 +57,7 @@ export function ChatInput({
         event.preventDefault();
         onSubmit();
       }}
-      className="overflow-hidden rounded-2xl bg-zinc-800 shadow-lg shadow-zinc-700/15 ring-1 ring-zinc-700/40"
+      className="rounded-2xl bg-zinc-800 shadow-lg shadow-zinc-700/15 ring-1 ring-zinc-700/40"
     >
       <label htmlFor="chat-input" className="sr-only">
         Instruction
@@ -72,7 +72,7 @@ export function ChatInput({
         className="w-full resize-none border-0 bg-transparent px-5 pb-2 pt-4 text-sm leading-6 text-zinc-100 outline-none placeholder:text-zinc-400 disabled:cursor-not-allowed disabled:opacity-60"
       />
 
-      <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-1">
+      <div className="relative z-10 flex items-center justify-between gap-3 px-4 pb-3 pt-1">
         <div className="min-w-0">
           {isGitHubConnected ? (
             <RepoSelector
