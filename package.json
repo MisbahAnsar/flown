@@ -1,7 +1,9 @@
 {
   "name": "flowm",
   "version": "0.1.0",
+  "description": "Natural-language instructions executed by a 3-agent pipeline, logged on Stellar testnet",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

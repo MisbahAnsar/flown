@@ -1,21 +1,133 @@
 # flowm
 
-flowm is a Next.js app where a user gives one natural language instruction (for example, "summarize my GitHub notifications") and a 3-agent pipeline (Interpreter → Fetcher → Actor) executes it, logging every action to a Soroban smart contract on Stellar testnet.
+**Natural-language instructions, executed by agents, logged on-chain.**
 
-## Live Demo
+Give flowm a plain-English instruction — for example, *"Summarize my GitHub notifications"* — and a three-agent pipeline interprets it, fetches the data, acts on it, and writes an immutable audit entry to a Soroban smart contract on Stellar testnet. Every step is verifiable: the UI shows live agent activity, and the Audit Trail tab reads the full on-chain history.
 
-After you deploy to Vercel, add your production URL here:
+**Problem:** AI agents often act on your behalf with no durable, public record of *what* ran, *when*, and *with what outcome*. flowm treats transparency as a first-class feature: the agent pipeline is visible in real time, and the Actor agent persists each action to an append-only Soroban contract so anyone can inspect the log.
 
-**Production URL:** `https://your-project.vercel.app` _(replace after deploy)_
+**Live demo:** [https://flowm.vercel.app](https://flowm.vercel.app)
 
-## Prerequisites
+---
 
-- [Bun](https://bun.sh) (or Node.js 20+ with npm/pnpm)
-- A [GitHub account](https://github.com) for OAuth
-- The [Freighter](https://www.freighter.app/) browser extension (Stellar testnet)
-- A funded **Stellar testnet** account for server-side signing (`STELLAR_SECRET_KEY`)
+## Table of contents
 
-## Local setup
+- [Architecture](#architecture)
+- [Tech stack](#tech-stack)
+- [Smart contract](#smart-contract)
+- [Screenshots](#screenshots)
+- [Local development](#local-development)
+- [Deploy to Vercel](#deploy-to-vercel)
+- [Monitoring & feedback](#monitoring--feedback)
+- [Known limitations & roadmap](#known-limitations--roadmap)
+- [Project structure](#project-structure)
+- [License](#license)
+
+---
+
+## Architecture
+
+flowm runs a linear **Interpreter → Fetcher → Actor** pipeline. Each agent has a narrow job; only the Actor writes to Stellar.
+
+```mermaid
+flowchart LR
+  User([User instruction]) --> UI[Next.js UI]
+  UI --> API["/api/run-instruction"]
+  API --> I[Interpreter]
+  I -->|TaskPlan| F[Fetcher]
+  F -->|GitHub notifications| A[Actor]
+  A -->|log_action| SC[(Soroban contract)]
+  A --> UI
+  SC --> Audit[Audit Trail panel]
+```
+
+| Agent | Responsibility | Side effects |
+|---|---|---|
+| **Interpreter** | Validates natural language and builds a structured `TaskPlan` | None |
+| **Fetcher** | Reads unread GitHub notifications via the GitHub API | Read-only |
+| **Actor** | Summarizes results and submits `log_action` to Soroban | On-chain write |
+
+**Signing model:** Soroban transactions are signed server-side with a dedicated testnet account (`STELLAR_SECRET_KEY`) so pipeline runs do not require repeated Freighter popups. Freighter is still required in the UI so users connect a Stellar testnet identity; the connected wallet gates API access.
+
+**Trust layer:** The Audit Trail panel calls `get_action_count` and `get_actions` directly against the deployed contract via Soroban RPC — not session history — so the log reflects everything recorded on-chain.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
+| Auth | NextAuth.js + GitHub OAuth |
+| Wallet | Freighter (`@stellar/freighter-api`) |
+| Agents | TypeScript modules in `lib/agents/` |
+| Blockchain | Stellar testnet, Soroban (`@stellar/stellar-sdk`) |
+| Smart contract | Rust (`soroban-sdk`), crate `flowm-action-log` |
+| Validation | Zod |
+| Analytics | Vercel Web Analytics |
+| Error monitoring | Sentry (optional) |
+| Runtime | Bun or Node.js 20+ |
+
+---
+
+## Smart contract
+
+Append-only audit log on **Stellar Testnet**. Each pipeline run appends one `ActionLog` entry with agent id, action type, tool, instruction hash, and timestamp.
+
+| Field | Value |
+|---|---|
+| **Contract ID** | `CD3JPZA3CQUX6NZMXK4BPA5MQ4WLWA5NI32KWFPQXSAMGYIDWJILPAVC` |
+| **Network** | Stellar Testnet (`Test SDF Network ; September 2015`) |
+| **RPC** | `https://soroban-testnet.stellar.org` |
+| **Source** | [`contracts/src/lib.rs`](./contracts/src/lib.rs) |
+| **Deployment tx** | [View on Stellar Expert](https://stellar.expert/explorer/testnet/tx/7eb1ed872d91777ba6d21e28ec7227911ef8dd20437e18d1418322643f2c9354) |
+| **Contract explorer** | [View contract](https://stellar.expert/explorer/testnet/contract/CD3JPZA3CQUX6NZMXK4BPA5MQ4WLWA5NI32KWFPQXSAMGYIDWJILPAVC) |
+
+### Contract functions
+
+| Function | Description |
+|---|---|
+| `log_action(agent_id, action_type, tool, instruction_hash, timestamp) -> u64` | Append one immutable log entry; returns sequential id |
+| `get_action(id) -> ActionLog` | Read a single entry by id |
+| `get_action_count() -> u64` | Total number of logged actions |
+| `get_actions(start, limit) -> Vec<ActionLog>` | Paginated audit trail (max 100 per call) |
+
+Build, test, and deploy instructions: [`contracts/README.md`](./contracts/README.md).
+
+---
+
+## Screenshots
+
+Replace each placeholder with a captured PNG saved under `docs/screenshots/`.
+
+| Placeholder | What to capture |
+|---|---|
+| `[INSERT SCREENSHOT: desktop chat UI]` | Chat tab after a successful run — instruction input, live activity feed, summary, and Stellar Expert link |
+| `[INSERT SCREENSHOT: mobile view]` | Same flow at ~390px width — header buttons, onboarding banner, stacked layout |
+| `[INSERT SCREENSHOT: audit trail]` | Audit Trail tab — paginated on-chain history with proof links |
+| `[INSERT SCREENSHOT: analytics dashboard]` | Vercel → Project → Analytics — page views and custom events |
+
+Suggested filenames once captured:
+
+```
+docs/screenshots/desktop-chat.png
+docs/screenshots/mobile-view.png
+docs/screenshots/audit-trail.png
+docs/screenshots/analytics-dashboard.png
+```
+
+Then embed in this section, e.g. `![Desktop chat UI](./docs/screenshots/desktop-chat.png)`.
+
+---
+
+## Local development
+
+### Prerequisites
+
+- [Bun](https://bun.sh) (recommended) or Node.js 20+
+- GitHub account (for OAuth)
+- [Freighter](https://www.freighter.app/) browser extension on **Stellar testnet**
+- Funded Stellar **testnet** account for server signing
 
 ### 1. Clone and install
 
@@ -31,205 +143,126 @@ bun install
 cp .env.local.example .env.local
 ```
 
-Fill in every value in `.env.local`. See [Environment variables](#environment-variables) below.
-
-### 3. GitHub OAuth (local)
-
-Create a **GitHub OAuth App** at [github.com/settings/developers](https://github.com/settings/developers):
-
-| Field | Local value |
-|---|---|
-| Application name | `flowm local` (any name) |
-| Homepage URL | `http://localhost:3000` |
-| Authorization callback URL | `http://localhost:3000/api/auth/callback/github` |
-
-Copy **Client ID** → `GITHUB_ID` and **Client secret** → `GITHUB_SECRET`.
-
-> **Note:** Each GitHub OAuth App allows **one** callback URL. For production you need a **second OAuth App** (or update the callback when switching environments). See [Deploy to Vercel](#deploy-to-vercel).
-
-Requested scopes: `read:user`, `user:email`, `notifications`.
-
-### 4. NextAuth secret
-
-```bash
-openssl rand -base64 32
-```
-
-Set the output as `NEXTAUTH_SECRET` and keep `NEXTAUTH_URL=http://localhost:3000`.
-
-### 5. Stellar testnet signing account
-
-The Actor agent submits `log_action` with a **server-funded** testnet account (not Freighter):
-
-1. Create or fund a testnet account (e.g. via [Stellar Laboratory Faucet](https://laboratory.stellar.org/#account-creator?network=test)).
-2. Set `STELLAR_SECRET_KEY` in `.env.local` to that account's secret key.
-3. Defaults for `STELLAR_NETWORK_PASSPHRASE`, `STELLAR_RPC_URL`, and `STELLAR_CONTRACT_ID` are pre-filled in `.env.local.example` for the deployed flowm contract.
-
-Freighter is still required in the UI so users connect a Stellar identity; logging is performed by the server account.
-
-### 6. Run locally
-
-```bash
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000):
-
-1. Dismiss or read the **getting started** banner (GitHub → wallet → instruction).
-2. Click **Sign in with GitHub** in the header.
-3. Click **Connect Wallet** (Freighter on testnet).
-4. Type an instruction such as **Summarize my GitHub notifications** and click **Send**.
-5. Open the **Audit Trail** tab to see on-chain history.
-
-### 7. Verify the build
-
-```bash
-bun run build
-bun test lib
-```
-
-Both should pass with no errors before deploying.
-
-## Deploy to Vercel
-
-### 1. Push to GitHub
-
-Push this repo to a GitHub repository Vercel can import.
-
-### 2. Import in Vercel
-
-1. [vercel.com/new](https://vercel.com/new) → import the repo.
-2. Framework preset: **Next.js** (auto-detected).
-3. Build command: `bun run build` (or `next build` if using npm).
-4. Install command: `bun install` (or `npm install`).
-
-### 3. Production GitHub OAuth App
-
-Create a **separate** OAuth App for production:
-
-| Field | Production value |
-|---|---|
-| Homepage URL | `https://your-project.vercel.app` |
-| Authorization callback URL | `https://your-project.vercel.app/api/auth/callback/github` |
-
-Use this app's Client ID/secret for Vercel env vars (not your local dev app).
-
-### 4. Vercel environment variables
-
-Add **all** variables from `.env.local.example` in Vercel → Project → Settings → Environment Variables:
-
-| Variable | Production notes |
-|---|---|
-| `NEXTAUTH_URL` | `https://your-project.vercel.app` (must match deployed URL exactly) |
-| `NEXTAUTH_SECRET` | Same or new secret; generate with `openssl rand -base64 32` |
-| `GITHUB_ID` / `GITHUB_SECRET` | From your **production** OAuth App |
-| `STELLAR_*` | Same testnet contract defaults; set `STELLAR_SECRET_KEY` for your funded server account |
-| `NEXT_PUBLIC_SENTRY_DSN` | Optional; recommended for error monitoring |
-| `NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED` | Leave unset in production (Analytics auto-enables on Vercel) |
-
-Redeploy after changing env vars.
-
-### 5. Enable Vercel Analytics (optional)
-
-Project → **Analytics** → enable **Web Analytics** to see page views and custom events (`instruction_succeeded`, `feedback_submitted`, etc.).
-
-### 6. Post-deploy checklist
-
-- [ ] GitHub sign-in completes without redirect errors
-- [ ] Freighter connects on testnet
-- [ ] An instruction runs end-to-end and appears in **Audit Trail**
-- [ ] Update the **Live Demo** URL at the top of this README
-
-## Environment variables
-
-Full list (copy from `.env.local.example`):
-
 | Variable | Required | Description |
 |---|---|---|
-| `NEXTAUTH_SECRET` | Yes | Encrypts session cookies |
-| `NEXTAUTH_URL` | Yes | Public app URL (local or production) |
+| `NEXTAUTH_SECRET` | Yes | Session encryption — `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | Yes | `http://localhost:3000` locally |
 | `GITHUB_ID` | Yes | GitHub OAuth App client ID |
 | `GITHUB_SECRET` | Yes | GitHub OAuth App client secret |
-| `STELLAR_NETWORK_PASSPHRASE` | Yes | Testnet passphrase (default in example) |
-| `STELLAR_RPC_URL` | Yes | Soroban RPC URL (default in example) |
-| `STELLAR_CONTRACT_ID` | Yes | Deployed audit-log contract ID |
+| `STELLAR_NETWORK_PASSPHRASE` | Yes | Default testnet value in example file |
+| `STELLAR_RPC_URL` | Yes | Default Soroban testnet RPC in example file |
+| `STELLAR_CONTRACT_ID` | Yes | Deployed contract ID (default in example file) |
 | `STELLAR_SECRET_KEY` | Yes | Server signing key for `log_action` |
 | `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry error monitoring |
 | `NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED` | No | Set `true` to test analytics locally |
 
-Never commit `.env.local` or expose `STELLAR_SECRET_KEY` / `GITHUB_SECRET` in client code.
+`.env.local` is gitignored. Never commit secrets.
 
-## Architecture
+### 3. GitHub OAuth App (local)
 
-flowm runs a 3-agent pipeline:
-
-| Agent | Responsibility | Side effects |
-|---|---|---|
-| **Interpreter** | Validates natural language and builds a `TaskPlan` | None |
-| **Fetcher** | Reads GitHub notifications | Read-only |
-| **Actor** | Summarizes results and logs to Soroban | Writes on-chain audit logs |
-
-**Stellar signing choice:** `log_action` is submitted with a server-funded testnet account (`STELLAR_SECRET_KEY`), not Freighter. This avoids wallet popups during automated runs and is more reliable for API-driven execution. Freighter is still required in the UI so users connect a Stellar identity; audit log reads use Soroban RPC (`get_action_count`, `get_actions`) without wallet interaction.
-
-## Smart Contract
-
-flowm logs every agent action to a Soroban contract on **Stellar Testnet**. The contract is append-only: each action gets a unique sequential id and is stored in persistent ledger storage.
+Create an app at [github.com/settings/developers](https://github.com/settings/developers):
 
 | Field | Value |
 |---|---|
-| **Contract address** | `CD3JPZA3CQUX6NZMXK4BPA5MQ4WLWA5NI32KWFPQXSAMGYIDWJILPAVC` |
-| **Network** | Stellar Testnet (`Test SDF Network ; September 2015`) |
-| **Deployer account** | `GC6PYSBZWG5IYY3JBKWJRUK2R5R2QKKXFMJSQ47RPH5Y6HL3BCGSK6DS` |
-| **Deployment tx** | [7eb1ed872d91777ba6d21e28ec7227911ef8dd20437e18d1418322643f2c9354](https://stellar.expert/explorer/testnet/tx/7eb1ed872d91777ba6d21e28ec7227911ef8dd20437e18d1418322643f2c9354) |
-| **WASM upload tx** | [8e1bcba2b2da1a9f8083628022bdaf4b3cf8bd24065e27a2ba916b083d3a1471](https://stellar.expert/explorer/testnet/tx/8e1bcba2b2da1a9f8083628022bdaf4b3cf8bd24065e27a2ba916b083d3a1471) |
-| **RPC URL** | `https://soroban-testnet.stellar.org` |
+| Homepage URL | `http://localhost:3000` |
+| Authorization callback URL | `http://localhost:3000/api/auth/callback/github` |
 
-### Functions
+Scopes used: `read:user`, `user:email`, `notifications`.
 
-- `log_action(agent_id, action_type, tool, instruction_hash, timestamp) -> u64` — append one immutable log entry
-- `get_action(id) -> ActionLog` — read a single entry
-- `get_action_count() -> u64` — total entries
-- `get_actions(start, limit) -> Vec<ActionLog>` — paginated audit trail (max 100 per call)
+> GitHub allows **one callback URL per OAuth App**. Use a separate app for production (see [Deploy to Vercel](#deploy-to-vercel)).
 
-Build and deploy steps are documented in [`contracts/README.md`](contracts/README.md).
+### 4. Stellar testnet signing account
 
-## User feedback
+1. Create/fund a testnet account ([Stellar Laboratory Faucet](https://laboratory.stellar.org/#account-creator?network=test)).
+2. Set `STELLAR_SECRET_KEY` in `.env.local`.
 
-Users can submit feedback via:
+### 5. Run
 
-- **After a successful instruction** — thumbs up/down with optional short note
-- **Header / footer** — **Send feedback** opens a modal
+```bash
+bun dev          # http://localhost:3000
+bun test lib     # unit tests (21 tests)
+bun run build    # production build
+cd contracts && cargo test   # contract tests
+```
 
-Submissions are stored in two places:
+**First-run flow:** Sign in with GitHub → Connect Freighter (testnet) → send *Summarize my GitHub notifications* → open **Audit Trail**.
 
-1. **Vercel Runtime Logs** — full JSON payload tagged `[flowm:feedback]` (view in Vercel → Project → Logs)
-2. **Vercel Analytics** — `feedback_submitted` event with `rating`, `source`, and truncated comment (max 200 chars)
+---
 
-No GitHub tokens, wallet keys, or instruction text are included in feedback payloads by default.
+## Deploy to Vercel
 
-## Monitoring & Analytics
+1. Import the repo at [vercel.com/new](https://vercel.com/new).
+2. Create a **production** GitHub OAuth App:
+   - Homepage: `https://flowm.vercel.app`
+   - Callback: `https://flowm.vercel.app/api/auth/callback/github`
+3. Set all env vars from `.env.local.example` in Vercel → Settings → Environment Variables.
+   - `NEXTAUTH_URL` must be `https://flowm.vercel.app` exactly.
+4. Enable **Web Analytics** on the Vercel project (optional but recommended).
+5. Deploy and verify: GitHub sign-in, wallet connect, instruction run, audit trail load.
 
-flowm uses lightweight, privacy-conscious monitoring so you can tell whether real users are getting value — without shipping secrets to third parties.
+---
 
-### What is tracked
+## Monitoring & feedback
 
-| Signal | Tool | Data sent |
-|---|---|---|
-| Page views | [Vercel Web Analytics](https://vercel.com/docs/analytics) | Route visits (automatic) |
-| Wallet connected | Vercel custom event | `is_testnet` only |
-| GitHub authenticated | Vercel custom event | Event name only (once per browser session) |
-| Instruction submitted / succeeded / failed | Vercel custom event | Failed events include `step` only |
-| Audit trail viewed | Vercel custom event | Event name only |
-| Feedback submitted | Vercel custom event + server logs | Rating, source, optional truncated comment |
-| Pipeline & UI errors | [Sentry](https://sentry.io) | Agent step, HTTP status, error message — **no** tokens or keys |
+| Signal | Where |
+|---|---|
+| Page views & custom events | Vercel → Analytics → Events |
+| Pipeline / UI errors | Sentry (if `NEXT_PUBLIC_SENTRY_DSN` is set) |
+| User feedback | Vercel Runtime Logs (`[flowm:feedback]`) + `feedback_submitted` analytics event |
 
-**Never sent to analytics or Sentry:** GitHub access tokens, instruction text, notification summaries, wallet public keys, private keys, or server signing secrets. Scrubbing runs in `lib/monitoring/scrub.ts`.
+No GitHub tokens, private keys, instruction text, or wallet addresses are sent to analytics or Sentry. See [`lib/monitoring/scrub.ts`](./lib/monitoring/scrub.ts).
 
-### Setup
+---
 
-1. **Vercel Analytics** — Enable **Web Analytics** on your Vercel project. Custom events appear under the Events tab.
-2. **Sentry** — Create a Next.js project and set `NEXT_PUBLIC_SENTRY_DSN` in Vercel env vars.
+## Known limitations & roadmap
 
-## Screenshots
+**Current MVP limitations:**
 
-<!-- Add screenshots after deploy -->
+- One supported instruction type: summarizing GitHub notifications
+- GitHub OAuth required; no other data sources yet
+- Soroban logging uses a server-funded account (not user-signed txs)
+- Stellar testnet only
+
+**Planned for future levels:**
+
+| Feature | Description |
+|---|---|
+| **Discord agent** | Read and summarize Discord messages / mentions |
+| **Gmail agent** | Fetch and act on email instructions |
+| **Memory agent** | Persist context across sessions for multi-step workflows |
+
+These extend the same Interpreter → Fetcher → Actor pattern with new tools and on-chain action types.
+
+---
+
+## Project structure
+
+```
+app/           Next.js pages and API routes
+components/    UI (chat, audit trail, wallet, auth, feedback)
+lib/agents/    Interpreter, Fetcher, Actor
+lib/pipeline/  Orchestration and API types
+lib/stellar/   Soroban client and audit trail reads
+lib/github/    GitHub notifications client
+contracts/     Soroban smart contract (Rust)
+```
+
+Detailed layout and contribution notes: [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+---
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `bun dev` | Start development server |
+| `bun run build` | Production build |
+| `bun start` | Serve production build |
+| `bun test lib` | Run unit tests |
+| `bun run lint` | ESLint |
+
+---
+
+## License
+
+[MIT](./LICENSE)

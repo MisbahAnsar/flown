@@ -52,10 +52,7 @@ export async function runInstructionPipeline(
 ): Promise<PipelineResult> {
   const { instructionText, walletAddress, userId, githubAccessToken } = context;
 
-  logPipeline("pipeline", "run started", {
-    userId,
-    walletAddress,
-  });
+  logPipeline("pipeline", "run started", { userId });
 
   const interpreted = interpret(instructionText);
   if (!interpreted.success) {

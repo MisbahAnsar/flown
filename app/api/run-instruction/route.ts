@@ -8,23 +8,6 @@ import {
 } from "@/lib/pipeline/run-instruction";
 import { RunInstructionRequestSchema } from "@/lib/pipeline/types";
 
-/*
- * Manual integration test (local dev):
- *
- * 1. Set GITHUB_ID, GITHUB_SECRET, NEXTAUTH_SECRET, STELLAR_SECRET_KEY in .env.local
- * 2. bun dev
- * 3. Sign in with GitHub and connect Freighter in the header
- * 4. POST /api/run-instruction with cookies + JSON body:
- *    {
- *      "instructionText": "Summarize my GitHub notifications",
- *      "walletAddress": "<your-freighter-public-key>"
- *    }
- * 5. Expect 200 { instructionId, summary, stellarTxHash }
- *
- * Automated integration tests with mocked GitHub + Stellar:
- *   bun test lib/pipeline/run-instruction.test.ts
- */
-
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session?.user?.id) {
