@@ -3,7 +3,7 @@ import { FeedbackRequestSchema } from "@/lib/feedback/types";
 
 /**
  * Persists feedback in Vercel Runtime Logs (structured JSON).
- * View in Vercel → Project → Logs, filter by `[flowm:feedback]`.
+ * View in Vercel → Project → Logs, filter by `[flowms:feedback]`.
  * The client also emits a `feedback_submitted` Vercel Analytics event.
  */
 export async function POST(request: Request) {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const { rating, comment, source } = parsed.data;
 
   console.info(
-    "[flowm:feedback]",
+    "[flowms:feedback]",
     JSON.stringify({
       rating,
       source,

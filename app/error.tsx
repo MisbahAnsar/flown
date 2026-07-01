@@ -11,7 +11,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[flowm] Route error:", error);
+    console.error("[flowms] Route error:", error);
     captureMonitoringException(error, { surface: "route_error" });
   }, [error]);
 
@@ -22,7 +22,7 @@ export default function Error({
           This page ran into a problem
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          flowm could not finish loading this view. Try again, or reload if the
+          flowms could not finish loading this view. Try again, or reload if the
           issue persists.
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">

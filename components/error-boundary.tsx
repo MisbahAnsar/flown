@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("[flowm] Unexpected UI error:", error, info.componentStack);
+    console.error("[flowms] Unexpected UI error:", error, info.componentStack);
     captureMonitoringException(error, { surface: "error_boundary" });
   }
 
@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<
               Something went wrong
             </h1>
             <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-              flowm hit an unexpected error. Reload the page to continue. Your
+              flowms hit an unexpected error. Reload the page to continue. Your
               wallet and GitHub session are unaffected.
             </p>
             <button

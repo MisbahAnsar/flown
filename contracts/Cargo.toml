@@ -1,5 +1,5 @@
 [package]
-name = "flowm-action-log"
+name = "flowms-action-log"
 version = "0.1.0"
 edition = "2021"
 publish = false

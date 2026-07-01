@@ -1,5 +1,5 @@
 {
-  "name": "flowm",
+  "name": "flowms",
   "version": "0.1.0",
   "description": "Natural-language instructions executed by a 3-agent pipeline, logged on Stellar testnet",
   "private": true,

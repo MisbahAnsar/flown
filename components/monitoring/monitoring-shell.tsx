@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { trackGitHubAuthenticated } from "@/lib/monitoring/analytics";
 import { isAnalyticsEnabled } from "@/lib/monitoring/config";
 
-const GITHUB_AUTH_TRACKED_KEY = "flowm_github_auth_tracked";
+const GITHUB_AUTH_TRACKED_KEY = "flowms_github_auth_tracked";
 
 export function MonitoringShell() {
   const { status } = useSession();

@@ -12,7 +12,7 @@ export default function GlobalError({
       <body className="min-h-screen bg-zinc-50 font-sans text-zinc-900 antialiased dark:bg-black dark:text-zinc-50">
         <div className="flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center">
           <div className="max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-            <h1 className="text-xl font-semibold">flowm is temporarily unavailable</h1>
+            <h1 className="text-xl font-semibold">flowms is temporarily unavailable</h1>
             <p className="mt-3 text-sm leading-6 text-zinc-600">
               A critical error stopped the app from loading. Reload to try again.
             </p>

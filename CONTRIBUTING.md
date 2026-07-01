@@ -1,11 +1,11 @@
-# Contributing to flowm
+# Contributing to flowms
 
-Thank you for reviewing or contributing to flowm. This document explains how the repository is organized so you can navigate the codebase quickly.
+Thank you for reviewing or contributing to flowms. This document explains how the repository is organized so you can navigate the codebase quickly.
 
 ## Project structure
 
 ```
-flowm/
+flowms/
 ├── app/                      # Next.js App Router
 │   ├── api/                  # Server routes (pipeline, auth, audit trail, feedback)
 │   ├── layout.tsx            # Root layout, metadata, providers

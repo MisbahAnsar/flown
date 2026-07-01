@@ -9,5 +9,5 @@ export function logPipeline(
 ): void {
   const safeMeta = sanitizeAnalyticsProperties(meta);
   const suffix = safeMeta ? ` ${JSON.stringify(safeMeta)}` : "";
-  console.log(`[flowm:${agent}] ${message}${suffix}`);
+  console.log(`[flowms:${agent}] ${message}${suffix}`);
 }

@@ -16,11 +16,11 @@ const sampleApiPayload = [
     unread: true,
     reason: "mention",
     updated_at: "2026-06-30T12:00:00Z",
-    repository: { full_name: "flowm/core" },
+    repository: { full_name: "flowms/core" },
     subject: {
       title: "Add fetcher agent",
       type: "Issue",
-      url: "https://api.github.com/repos/flowm/core/issues/7",
+      url: "https://api.github.com/repos/flowms/core/issues/7",
     },
   },
 ];
@@ -43,7 +43,7 @@ describe("fetch", () => {
     expect(result.result.source).toBe("github");
     expect(result.result.intent).toBe("summarize_github_notifications");
     expect(result.result.data).toHaveLength(1);
-    expect(result.result.data[0]?.repoName).toBe("flowm/core");
+    expect(result.result.data[0]?.repoName).toBe("flowms/core");
   });
 
   test("returns empty data when GitHub has no unread notifications", async () => {

@@ -258,10 +258,10 @@ export function InstructionPanel() {
       <div className="mx-auto w-full min-w-0 max-w-2xl">
         <div className="mb-6 text-center sm:mb-10 sm:text-left">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-            What should flowm do?
+            What should flowms do?
           </h1>
           <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:text-base">
-            Type one instruction in plain English. flowm runs it through three
+            Type one instruction in plain English. flowms runs it through three
             agents and records the result on Stellar testnet.
           </p>
         </div>

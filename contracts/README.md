@@ -1,6 +1,6 @@
-# flowm-action-log (Soroban)
+# flowms-action-log (Soroban)
 
-Append-only audit log contract for the flowm agent pipeline. Each Interpreter, Fetcher, and Actor step is stored as an immutable `ActionLog` entry on Stellar.
+Append-only audit log contract for the flowms agent pipeline. Each Interpreter, Fetcher, and Actor step is stored as an immutable `ActionLog` entry on Stellar.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ stellar contract build
 Release WASM output:
 
 ```
-target/wasm32v1-none/release/flowm_action_log.wasm
+target/wasm32v1-none/release/flowms_action_log.wasm
 ```
 
 Run unit tests locally (no network required):
@@ -41,23 +41,23 @@ If `testnet` already exists in your config, skip this step.
 ## Create a funded deployer identity (one-time)
 
 ```bash
-stellar keys generate flowm-deployer --network testnet --fund
+stellar keys generate flowms-deployer --network testnet --fund
 ```
 
 Show the deployer public key:
 
 ```bash
-stellar keys address flowm-deployer
+stellar keys address flowms-deployer
 ```
 
 ## Deploy to testnet
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32v1-none/release/flowm_action_log.wasm \
-  --source-account flowm-deployer \
+  --wasm target/wasm32v1-none/release/flowms_action_log.wasm \
+  --source-account flowms-deployer \
   --network testnet \
-  --alias flowm-action-log
+  --alias flowms-action-log
 ```
 
 The CLI prints the contract ID and Stellar Expert links for each transaction.
@@ -69,7 +69,7 @@ Confirm the log is empty:
 ```bash
 stellar contract invoke \
   --id CD3JPZA3CQUX6NZMXK4BPA5MQ4WLWA5NI32KWFPQXSAMGYIDWJILPAVC \
-  --source-account flowm-deployer \
+  --source-account flowms-deployer \
   --network testnet \
   -- get_action_count
 ```
@@ -83,7 +83,7 @@ When moving to mainnet later:
 1. Build with `stellar contract build` (same release profile).
 2. Add a `mainnet` network entry with your production RPC URL and passphrase `Public Global Stellar Network ; September 2015`.
 3. Fund a dedicated deployer account on mainnet (no Friendbot).
-4. Deploy with `--network mainnet` and a new alias (e.g. `flowm-action-log-mainnet`).
+4. Deploy with `--network mainnet` and a new alias (e.g. `flowms-action-log-mainnet`).
 5. Update `STELLAR_CONTRACT_ID`, `STELLAR_RPC_URL`, and `STELLAR_NETWORK_PASSPHRASE` in the app `.env.local`.
 
 ## Contract API

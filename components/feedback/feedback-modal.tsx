@@ -111,7 +111,7 @@ export function FeedbackModal({
         </div>
 
         <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          Help us improve flowm. Your message is stored in server logs and a
+          Help us improve flowms. Your message is stored in server logs and a
           summary is sent to analytics — never your GitHub token or wallet keys.
         </p>
 

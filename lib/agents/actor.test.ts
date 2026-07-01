@@ -18,19 +18,19 @@ const fetchedData: FetchResult = {
   intent: "summarize_github_notifications",
   data: [
     {
-      repoName: "flowm/core",
+      repoName: "flowms/core",
       subjectTitle: "Add actor agent",
       reason: "mention",
       type: "Issue",
-      url: "https://api.github.com/repos/flowm/core/issues/9",
+      url: "https://api.github.com/repos/flowms/core/issues/9",
       updatedAt: "2026-06-30T12:00:00Z",
     },
     {
-      repoName: "flowm/core",
+      repoName: "flowms/core",
       subjectTitle: "Wire pipeline API",
       reason: "subscribed",
       type: "PullRequest",
-      url: "https://api.github.com/repos/flowm/core/pulls/10",
+      url: "https://api.github.com/repos/flowms/core/pulls/10",
       updatedAt: "2026-06-30T11:00:00Z",
     },
   ],
@@ -62,7 +62,7 @@ describe("act", () => {
     }
 
     expect(result.summary).toContain("2 unread GitHub notifications");
-    expect(result.summary).toContain("flowm/core");
+    expect(result.summary).toContain("flowms/core");
     expect(result.summary).toContain("Add actor agent");
     expect(result.txHash).toBe("stellar-tx-hash-123");
   });

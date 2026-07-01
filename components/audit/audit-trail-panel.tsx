@@ -222,7 +222,7 @@ export function AuditTrailPanel() {
               No actions logged yet
             </p>
             <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-              Send an instruction from the Chat tab. flowm will log the action
+              Send an instruction from the Chat tab. flowms will log the action
               here automatically.
             </p>
           </div>

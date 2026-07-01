@@ -18,7 +18,7 @@ import {
 } from "@stellar/freighter-api";
 import { TESTNET_PASSPHRASE } from "@/lib/stellar/constants";
 
-const STORAGE_DISCONNECTED = "flowm_wallet_manual_disconnect";
+const STORAGE_DISCONNECTED = "flowms_wallet_manual_disconnect";
 
 export type WalletStatus = "idle" | "connected" | "disconnected";
 

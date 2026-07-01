@@ -15,11 +15,11 @@ const sampleNotification = {
   unread: true,
   reason: "mention",
   updated_at: "2026-06-30T12:00:00Z",
-  repository: { full_name: "flowm/core" },
+  repository: { full_name: "flowms/core" },
   subject: {
     title: "Pipeline wiring",
     type: "Issue",
-    url: "https://api.github.com/repos/flowm/core/issues/11",
+    url: "https://api.github.com/repos/flowms/core/issues/11",
   },
 };
 

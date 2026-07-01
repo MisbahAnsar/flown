@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "flowm_onboarding_dismissed";
+const STORAGE_KEY = "flowms_onboarding_dismissed";
 
 export function OnboardingBanner() {
   const [visible, setVisible] = useState(false);
@@ -28,12 +28,12 @@ export function OnboardingBanner() {
       <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-sky-950 dark:text-sky-100">
-            New to flowm? Start in three steps
+            New to flowms? Start in three steps
           </p>
           <ol className="mt-2 space-y-1.5 text-sm leading-6 text-sky-900 dark:text-sky-200">
             <li>
               <span className="font-medium">1. Connect GitHub</span> — sign in
-              from the header so flowm can read your notifications.
+              from the header so flowms can read your notifications.
             </li>
             <li>
               <span className="font-medium">2. Connect wallet</span> — link

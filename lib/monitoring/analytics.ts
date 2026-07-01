@@ -3,7 +3,7 @@ import type { PipelineStep } from "@/lib/pipeline/types";
 import { isAnalyticsEnabled } from "./config";
 import { sanitizeAnalyticsProperties } from "./scrub";
 
-export type FlowmAnalyticsEvent =
+export type FlowmsAnalyticsEvent =
   | "wallet_connected"
   | "github_authenticated"
   | "instruction_submitted"
@@ -13,7 +13,7 @@ export type FlowmAnalyticsEvent =
   | "feedback_submitted";
 
 function emit(
-  name: FlowmAnalyticsEvent,
+  name: FlowmsAnalyticsEvent,
   properties?: Record<string, string | number | boolean>,
 ): void {
   if (!isAnalyticsEnabled()) {

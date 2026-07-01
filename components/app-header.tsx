@@ -14,7 +14,7 @@ export function AppHeader() {
           href="/"
           className="shrink-0 text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-lg"
         >
-          flowm
+          flowms
         </Link>
         <div className="flex min-w-0 shrink items-center justify-end gap-1.5 sm:gap-2">
           <FeedbackButton />

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "flowm",
+      "name": "flowms",
       "dependencies": {
         "@sentry/nextjs": "^10.62.0",
         "@stellar/freighter-api": "^6.0.1",

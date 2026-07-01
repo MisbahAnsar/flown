@@ -1,12 +1,12 @@
-# flowm
+# flowms
 
 **Natural-language instructions, executed by agents, logged on-chain.**
 
-Give flowm a plain-English instruction — for example, *"Summarize my GitHub notifications"* — and a three-agent pipeline interprets it, fetches the data, acts on it, and writes an immutable audit entry to a Soroban smart contract on Stellar testnet. Every step is verifiable: the UI shows live agent activity, and the Audit Trail tab reads the full on-chain history.
+Give flowms a plain-English instruction — for example, *"Summarize my GitHub notifications"* — and a three-agent pipeline interprets it, fetches the data, acts on it, and writes an immutable audit entry to a Soroban smart contract on Stellar testnet. Every step is verifiable: the UI shows live agent activity, and the Audit Trail tab reads the full on-chain history.
 
-**Problem:** AI agents often act on your behalf with no durable, public record of *what* ran, *when*, and *with what outcome*. flowm treats transparency as a first-class feature: the agent pipeline is visible in real time, and the Actor agent persists each action to an append-only Soroban contract so anyone can inspect the log.
+**Problem:** AI agents often act on your behalf with no durable, public record of *what* ran, *when*, and *with what outcome*. flowms treats transparency as a first-class feature: the agent pipeline is visible in real time, and the Actor agent persists each action to an append-only Soroban contract so anyone can inspect the log.
 
-**Live demo:** [https://flowm.vercel.app](https://flowm.vercel.app)
+**Live demo:** [https://flowms.vercel.app](https://flowms.vercel.app)
 
 ---
 
@@ -27,7 +27,7 @@ Give flowm a plain-English instruction — for example, *"Summarize my GitHub no
 
 ## Architecture
 
-flowm runs a linear **Interpreter → Fetcher → Actor** pipeline. Each agent has a narrow job; only the Actor writes to Stellar.
+flowms runs a linear **Interpreter → Fetcher → Actor** pipeline. Each agent has a narrow job; only the Actor writes to Stellar.
 
 ```mermaid
 flowchart LR
@@ -62,7 +62,7 @@ flowchart LR
 | Wallet | Freighter (`@stellar/freighter-api`) |
 | Agents | TypeScript modules in `lib/agents/` |
 | Blockchain | Stellar testnet, Soroban (`@stellar/stellar-sdk`) |
-| Smart contract | Rust (`soroban-sdk`), crate `flowm-action-log` |
+| Smart contract | Rust (`soroban-sdk`), crate `flowms-action-log` |
 | Validation | Zod |
 | Analytics | Vercel Web Analytics |
 | Error monitoring | Sentry (optional) |
@@ -132,8 +132,8 @@ Then embed in this section, e.g. `![Desktop chat UI](./docs/screenshots/desktop-
 ### 1. Clone and install
 
 ```bash
-git clone <your-repo-url>
-cd flowm
+git clone https://github.com/MisbahAnsar/flown
+cd flown
 bun install
 ```
 
@@ -193,10 +193,10 @@ cd contracts && cargo test   # contract tests
 
 1. Import the repo at [vercel.com/new](https://vercel.com/new).
 2. Create a **production** GitHub OAuth App:
-   - Homepage: `https://flowm.vercel.app`
-   - Callback: `https://flowm.vercel.app/api/auth/callback/github`
+   - Homepage: `https://flowms.vercel.app`
+   - Callback: `https://flowms.vercel.app/api/auth/callback/github`
 3. Set all env vars from `.env.local.example` in Vercel → Settings → Environment Variables.
-   - `NEXTAUTH_URL` must be `https://flowm.vercel.app` exactly.
+   - `NEXTAUTH_URL` must be `https://flowms.vercel.app` exactly.
 4. Enable **Web Analytics** on the Vercel project (optional but recommended).
 5. Deploy and verify: GitHub sign-in, wallet connect, instruction run, audit trail load.
 
@@ -208,7 +208,7 @@ cd contracts && cargo test   # contract tests
 |---|---|
 | Page views & custom events | Vercel → Analytics → Events |
 | Pipeline / UI errors | Sentry (if `NEXT_PUBLIC_SENTRY_DSN` is set) |
-| User feedback | Vercel Runtime Logs (`[flowm:feedback]`) + `feedback_submitted` analytics event |
+| User feedback | Vercel Runtime Logs (`[flowms:feedback]`) + `feedback_submitted` analytics event |
 
 No GitHub tokens, private keys, instruction text, or wallet addresses are sent to analytics or Sentry. See [`lib/monitoring/scrub.ts`](./lib/monitoring/scrub.ts).
 

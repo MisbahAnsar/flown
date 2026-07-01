@@ -17,17 +17,17 @@ const geistMono = Geist_Mono({
 });
 
 const siteDescription =
-  "Give flowm a plain-English instruction. A 3-agent pipeline runs it and logs every action on Stellar testnet for a verifiable audit trail.";
+  "Give flowms a plain-English instruction. A 3-agent pipeline runs it and logs every action on Stellar testnet for a verifiable audit trail.";
 
 export const metadata: Metadata = {
   title: {
-    default: "flowm",
-    template: "%s · flowm",
+    default: "flowms",
+    template: "%s · flowms",
   },
   description: siteDescription,
-  applicationName: "flowm",
+  applicationName: "flowms",
   keywords: [
-    "flowm",
+    "flowms",
     "Stellar",
     "Soroban",
     "GitHub",
@@ -35,21 +35,21 @@ export const metadata: Metadata = {
     "audit trail",
     "testnet",
   ],
-  authors: [{ name: "flowm" }],
-  creator: "flowm",
+  authors: [{ name: "flowms" }],
+  creator: "flowms",
   metadataBase: new URL(
     process.env.NEXTAUTH_URL ?? "http://localhost:3000",
   ),
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "flowm",
-    title: "flowm",
+    siteName: "flowms",
+    title: "flowms",
     description: siteDescription,
   },
   twitter: {
     card: "summary",
-    title: "flowm",
+    title: "flowms",
     description: siteDescription,
   },
   robots: {
