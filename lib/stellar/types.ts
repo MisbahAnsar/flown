@@ -5,6 +5,12 @@ export interface StellarConfig {
   secretKey: string;
 }
 
+export interface StellarPublicConfig {
+  networkPassphrase: string;
+  rpcUrl: string;
+  contractId: string;
+}
+
 export interface OnChainActionLog {
   agentId: string;
   actionType: string;

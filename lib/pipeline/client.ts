@@ -60,3 +60,7 @@ export async function postRetryLogging(input: {
 export function stellarExpertTxUrl(txHash: string): string {
   return `https://stellar.expert/explorer/testnet/tx/${txHash}`;
 }
+
+export function stellarExpertContractUrl(contractId: string): string {
+  return `https://stellar.expert/explorer/testnet/contract/${contractId}`;
+}

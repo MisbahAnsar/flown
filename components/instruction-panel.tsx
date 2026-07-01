@@ -9,6 +9,7 @@ import {
   stellarExpertTxUrl,
 } from "@/lib/pipeline/client";
 import type { PipelineErrorResponse } from "@/lib/pipeline/types";
+import { useAuditRefresh } from "@/components/audit/audit-refresh-context";
 import { useWallet } from "@/components/wallet/wallet-provider";
 import {
   advanceRunningStep,
@@ -38,6 +39,7 @@ function updateRun(
 
 export function InstructionPanel() {
   const { data: session, status: authStatus } = useSession();
+  const { notifyPipelineSuccess } = useAuditRefresh();
   const { status: walletStatus, publicKey, isLoading: walletLoading } =
     useWallet();
 
@@ -163,6 +165,11 @@ export function InstructionPanel() {
         steps: applyPipelineSuccess(existing?.steps ?? startPipelineSteps()),
       });
     });
+
+    notifyPipelineSuccess({
+      instructionHashHex: result.data.instructionHashHex,
+      stellarTxHash: result.data.stellarTxHash,
+    });
   }
 
   async function handleRetryLogging() {
@@ -212,6 +219,11 @@ export function InstructionPanel() {
         steps: applyPipelineSuccess(applyRetryActorSteps(activeRun.steps)),
       }),
     );
+
+    notifyPipelineSuccess({
+      instructionHashHex: result.data.instructionHashHex,
+      stellarTxHash: result.data.stellarTxHash,
+    });
   }
 
   const showRetryLogging =

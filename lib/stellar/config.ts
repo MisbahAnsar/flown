@@ -1,12 +1,25 @@
-import type { StellarConfig } from "./types";
+import type { StellarPublicConfig } from "./types";
 
-export function getStellarConfig(): StellarConfig | null {
+export function getStellarConfig(): import("./types").StellarConfig | null {
+  const publicConfig = getStellarPublicConfig();
+  const secretKey = process.env.STELLAR_SECRET_KEY;
+
+  if (!publicConfig || !secretKey) {
+    return null;
+  }
+
+  return {
+    ...publicConfig,
+    secretKey,
+  };
+}
+
+export function getStellarPublicConfig(): StellarPublicConfig | null {
   const networkPassphrase = process.env.STELLAR_NETWORK_PASSPHRASE;
   const rpcUrl = process.env.STELLAR_RPC_URL;
   const contractId = process.env.STELLAR_CONTRACT_ID;
-  const secretKey = process.env.STELLAR_SECRET_KEY;
 
-  if (!networkPassphrase || !rpcUrl || !contractId || !secretKey) {
+  if (!networkPassphrase || !rpcUrl || !contractId) {
     return null;
   }
 
@@ -14,6 +27,5 @@ export function getStellarConfig(): StellarConfig | null {
     networkPassphrase,
     rpcUrl,
     contractId,
-    secretKey,
   };
 }

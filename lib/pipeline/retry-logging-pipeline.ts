@@ -86,6 +86,7 @@ export async function retryLoggingPipeline(
     ok: true,
     data: {
       instructionId: retryLogging.instructionId,
+      instructionHashHex: retryLogging.prepared.instructionHashHex,
       summary: result.summary,
       stellarTxHash: result.txHash,
     },

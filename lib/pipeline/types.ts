@@ -37,6 +37,7 @@ export type PipelineErrorResponse = {
 
 export type PipelineSuccessResponse = {
   instructionId: string;
+  instructionHashHex: string;
   summary: string;
   stellarTxHash: string;
 };

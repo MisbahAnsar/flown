@@ -8,6 +8,7 @@ import {
   createServerSignedContractClient,
   getStellarConfig,
 } from "@/lib/stellar/client";
+import { hashInstructionHex } from "@/lib/stellar/hash";
 import type { ActionLogContractClient } from "@/lib/stellar/types";
 import { logPipeline } from "./logger";
 import type {
@@ -175,6 +176,10 @@ export async function runInstructionPipeline(
     ok: true,
     data: {
       instructionId: taskPlan.instructionId,
+      instructionHashHex: hashInstructionHex(
+        taskPlan.instructionId,
+        taskPlan.intent,
+      ),
       summary: acted.summary,
       stellarTxHash: acted.txHash,
     },
