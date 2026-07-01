@@ -1,20 +1,17 @@
-export interface StellarConfig {
-  networkPassphrase: string;
-  rpcUrl: string;
-  contractId: string;
-}
-
-export function getStellarConfig(): StellarConfig {
-  return {
-    networkPassphrase: process.env.STELLAR_NETWORK_PASSPHRASE ?? "",
-    rpcUrl: process.env.STELLAR_RPC_URL ?? "",
-    contractId: process.env.STELLAR_CONTRACT_ID ?? "",
-  };
-}
-
-export async function logActionToContract(
-  _action: string,
-  _payload: Record<string, unknown>,
-): Promise<string> {
-  throw new Error("Not implemented");
-}
+export { getStellarConfig } from "./config";
+export { hashInstruction, hashInstructionHex } from "./hash";
+export {
+  createContractClientFactory,
+  createServerSignedContractClient,
+} from "./contract-client";
+export { TESTNET_PASSPHRASE, FREIGHTER_INSTALL_URL } from "./constants";
+export type {
+  ActionLogContractClient,
+  ActionLogContractClientFactory,
+  LogActionParams,
+  LogActionResult,
+  OnChainActionLog,
+  ReadContractResult,
+  StellarClientError,
+  StellarConfig,
+} from "./types";

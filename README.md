@@ -18,12 +18,22 @@ flowm is a Next.js app where a user gives one natural language instruction (for 
    ```
    Set the output as `NEXTAUTH_SECRET` and keep `NEXTAUTH_URL=http://localhost:3000`.
 5. Install the [Freighter](https://www.freighter.app/) browser extension and switch it to **Testnet**.
-6. Run the dev server: `bun dev`
-7. Open [http://localhost:3000](http://localhost:3000), click **Sign in with GitHub**, then **Connect Wallet**. Both are required before running an instruction.
+6. Fund a dedicated testnet service account and set `STELLAR_SECRET_KEY` in `.env.local`. The Actor agent uses **server-side signing** with this key to submit `log_action` transactions reliably during pipeline runs. Freighter remains the user's connected wallet in the UI; Soroban logging is performed by the server account.
+7. Run the dev server: `bun dev`
+8. Open [http://localhost:3000](http://localhost:3000), click **Sign in with GitHub**, then **Connect Wallet**. Both are required before running an instruction.
 
 ## Architecture
 
-<!-- To be filled in -->
+flowm runs a 3-agent pipeline:
+
+| Agent | Responsibility | Side effects |
+|---|---|---|
+| **Interpreter** | Validates natural language and builds a `TaskPlan` | None |
+| **Fetcher** | Reads GitHub notifications | Read-only |
+| **Actor** | Summarizes results and logs to Soroban | Writes on-chain audit logs |
+
+**Stellar signing choice:** `log_action` is submitted with a server-funded testnet account (`STELLAR_SECRET_KEY`), not Freighter. This avoids wallet popups during automated runs and is more reliable for API-driven execution. Freighter is still required in the UI so users connect a Stellar identity; audit log reads use Soroban RPC (`get_action_count`, `get_actions`) without wallet interaction.
+
 
 ## Smart Contract
 

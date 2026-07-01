@@ -14,9 +14,3 @@ export interface AgentContext {
   userId: string;
   instruction: string;
 }
-
-export interface ActionResult {
-  success: boolean;
-  summary: string;
-  txHash?: string;
-}
