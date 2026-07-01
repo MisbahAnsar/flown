@@ -1,9 +1,18 @@
 import type { GitHubRepoDetails } from "@/lib/github/repo-details";
 import { generateGeminiText, getGeminiConfig } from "@/lib/gemini/client";
+import { sanitizeSummary } from "./format-summary";
 import type { FetchResult } from "./fetcher-types";
 import { summarizeGitHubNotifications, summarizeGitHubRepo } from "./summarize";
 import type { TaskPlan } from "./types";
 import type { ThinkerDeps, ThinkerResult } from "./thinker-types";
+
+const PLAIN_TEXT_RULES = [
+  "Write in plain conversational prose only.",
+  "Do not use markdown headings (#, ##, ###).",
+  "Do not use bold (**), italics, or bullet lists unless absolutely necessary.",
+  "Do not use em-dashes. Use commas or short sentences instead.",
+  "Keep paragraphs short and easy to read.",
+].join(" ");
 
 const MAX_NOTIFICATIONS_FOR_PROMPT = 25;
 const MAX_README_CHARS = 6000;
@@ -54,10 +63,12 @@ function buildPrompt(
   if (fetched.intent === "summarize_github_repo") {
     return [
       "You are the Thinker agent in flowms, a personal agent workspace.",
-      "Summarize the GitHub repository for the user using the description and README provided.",
-      "Explain what the project does, who it is for, and any notable details from the README.",
+      "Summarize the GitHub repository for the user using ONLY the description and README in the JSON below.",
+      `The repository you must discuss is exactly: ${fetched.data.fullName}.`,
+      "Do not mention or infer details from any other repository.",
+      "Explain what the project does, who it is for, and notable details from the README.",
       "Do not invent features or content that is not in the data.",
-      "Use clear markdown with short sections and bullet points.",
+      PLAIN_TEXT_RULES,
       "",
       `User instruction: ${instructionText}`,
       "",
@@ -72,7 +83,7 @@ function buildPrompt(
     "Group related items by repository when helpful.",
     "Highlight what likely needs action versus FYI items.",
     "Do not invent notifications. Use only the data provided.",
-    "Use short markdown sections and bullet points.",
+    PLAIN_TEXT_RULES,
     "",
     `User instruction: ${instructionText}`,
     `Total unread notifications: ${fetched.data.length}`,
@@ -84,10 +95,10 @@ function buildPrompt(
 
 function fallbackSummary(fetched: FetchResult): string {
   if (fetched.intent === "summarize_github_repo") {
-    return summarizeGitHubRepo(fetched.data);
+    return sanitizeSummary(summarizeGitHubRepo(fetched.data));
   }
 
-  return summarizeGitHubNotifications(fetched.data);
+  return sanitizeSummary(summarizeGitHubNotifications(fetched.data));
 }
 
 async function generateSummary(
@@ -157,7 +168,7 @@ export async function think(
 
       return {
         success: true,
-        summary: generated.text,
+        summary: sanitizeSummary(generated.text),
         usedAi: true,
       };
     }

@@ -23,15 +23,12 @@ import {
   applyRetryActorSteps,
   startPipelineSteps,
 } from "@/components/instruction/activity-feed";
-import { PipelineLiveDisplay } from "@/components/instruction/pipeline-live-display";
 import {
   buildInstructionText,
   ChatInput,
 } from "@/components/instruction/chat-input";
-import {
-  RunHistory,
-  type InstructionRun,
-} from "@/components/instruction/run-history";
+import { ConversationThread } from "@/components/instruction/conversation-thread";
+import type { InstructionRun } from "@/components/instruction/run-history";
 import { useGitHubRepos } from "@/lib/github/repos-client";
 
 function createRunId(): string {
@@ -55,7 +52,6 @@ export function InstructionPanel() {
   const [instruction, setInstruction] = useState("");
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   const [runs, setRuns] = useState<InstructionRun[]>([]);
-  const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [globalError, setGlobalError] = useState<PipelineErrorResponse | null>(
@@ -72,14 +68,13 @@ export function InstructionPanel() {
   const isReady = isGitHubReady && isWalletReady;
   const isChecking = authStatus === "loading" || walletLoading;
   const showWelcome = runs.length === 0;
+  const latestRun = runs[0] ?? null;
 
   const {
     repos,
     isLoading: reposLoading,
     error: reposError,
   } = useGitHubRepos(isGitHubReady);
-
-  const activeRun = runs.find((run) => run.id === activeRunId) ?? runs[0] ?? null;
 
   const clearProgressTimer = useCallback(() => {
     if (progressTimerRef.current) {
@@ -127,7 +122,6 @@ export function InstructionPanel() {
     };
 
     setRuns((current) => [newRun, ...current]);
-    setActiveRunId(runId);
     setInstruction("");
     setGlobalError(null);
     setIsSubmitting(true);
@@ -206,7 +200,7 @@ export function InstructionPanel() {
   }
 
   async function handleRetryLogging() {
-    if (!activeRun?.error?.retryLogging || !publicKey || isRetrying) {
+    if (!latestRun?.error?.retryLogging || !publicKey || isRetrying) {
       return;
     }
 
@@ -214,27 +208,27 @@ export function InstructionPanel() {
     setGlobalError(null);
 
     setRuns((current) =>
-      updateRun(current, activeRun.id, {
+      updateRun(current, latestRun.id, {
         status: "running",
-        steps: applyRetryActorSteps(activeRun.steps),
+        steps: applyRetryActorSteps(latestRun.steps),
         error: undefined,
       }),
     );
 
     const result = await postRetryLogging({
       walletAddress: publicKey,
-      retryLogging: activeRun.error.retryLogging,
+      retryLogging: latestRun.error.retryLogging,
     });
 
     setIsRetrying(false);
 
     if (!result.ok) {
       setRuns((current) =>
-        updateRun(current, activeRun.id, {
+        updateRun(current, latestRun.id, {
           status: "error",
           error: result.error,
           steps: applyPipelineError(
-            applyRetryActorSteps(activeRun.steps),
+            applyRetryActorSteps(latestRun.steps),
             "actor",
             result.error.error,
           ),
@@ -246,12 +240,12 @@ export function InstructionPanel() {
     }
 
     setRuns((current) =>
-      updateRun(current, activeRun.id, {
+      updateRun(current, latestRun.id, {
         status: "success",
         summary: result.data.summary,
         stellarTxHash: result.data.stellarTxHash,
         error: undefined,
-        steps: applyPipelineSuccess(applyRetryActorSteps(activeRun.steps)),
+        steps: applyPipelineSuccess(applyRetryActorSteps(latestRun.steps)),
       }),
     );
 
@@ -264,119 +258,117 @@ export function InstructionPanel() {
   }
 
   const showRetryLogging =
-    activeRun?.status === "error" &&
-    activeRun.error?.step === "actor" &&
-    !!activeRun.error.retryLogging;
+    latestRun?.status === "error" &&
+    latestRun.error?.step === "actor" &&
+    !!latestRun.error.retryLogging;
+
+  const chatInputProps = {
+    value: instruction,
+    onChange: setInstruction,
+    isGitHubConnected: isGitHubReady,
+    repos,
+    reposLoading,
+    reposError,
+    selectedRepo,
+    onSelectRepo: setSelectedRepo,
+    canRun: isReady && !isChecking,
+    isSubmitting,
+    onSubmit: () => void handleSubmit(),
+  };
+
+  if (showWelcome) {
+    return (
+      <div className="flex h-full min-h-0 flex-1 flex-col bg-white">
+        <div className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6">
+          <div className="w-full max-w-2xl">
+            {isChecking ? (
+              <div className="mb-8 flex items-center justify-center gap-3">
+                <span
+                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-800"
+                  aria-hidden
+                />
+                <p className="text-sm text-zinc-600">Loading session...</p>
+              </div>
+            ) : (
+              <div className="mb-8 text-center">
+                <h1 className="font-heading text-3xl text-zinc-900 sm:text-4xl">
+                  Workspace
+                </h1>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-600 sm:text-base">
+                  Connect GitHub from the chat bar, pick a repository, and run
+                  an instruction through the agent pipeline.
+                </p>
+              </div>
+            )}
+
+            <ChatInput {...chatInputProps} variant="center" />
+
+            {!isReady && !isChecking && isWalletReady && !isGitHubReady && (
+              <p className="mt-3 text-center text-sm text-zinc-500">
+                Connect GitHub in the chat bar to enable Run.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-white">
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 sm:px-6">
-          {showWelcome ? (
-            <div className="flex flex-1 flex-col items-center justify-center px-2 py-10 text-center">
-              {isChecking ? (
-                <div className="mb-8 flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
-                  <span
-                    className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-800"
-                    aria-hidden
-                  />
-                  <p className="text-sm text-zinc-600">Loading session...</p>
-                </div>
-              ) : (
-                <>
-                  <h1 className="font-heading text-3xl text-zinc-900 sm:text-4xl">
-                    Workspace
-                  </h1>
-                  <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-600 sm:text-base">
-                    Connect GitHub from the chat bar, pick a repository, and run
-                    an instruction through the agent pipeline.
-                  </p>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col py-6">
-              {runs.length > 1 && (
-                <RunHistory
-                  runs={runs}
-                  activeRunId={activeRun?.id ?? null}
-                  onSelect={setActiveRunId}
-                />
-              )}
-
-              {globalError && (
-                <div
-                  className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4"
-                  role="alert"
-                >
-                  <p className="text-sm font-medium text-red-800">
-                    {pipelineErrorTitle(globalError.step)}
-                  </p>
-                  <p className="mt-1 text-sm text-red-700">
-                    {globalError.error}
-                    {globalError.retryAfterSeconds
-                      ? ` Try again in ${globalError.retryAfterSeconds}s.`
-                      : ""}
-                  </p>
-                </div>
-              )}
-
-              {activeRun && (
-                <section className="space-y-4">
-                  <PipelineLiveDisplay
-                    steps={activeRun.steps}
-                    status={activeRun.status}
-                    summary={activeRun.summary}
-                    stellarTxHash={activeRun.stellarTxHash}
-                    errorMessage={activeRun.error?.error}
-                  />
-
-                  {activeRun.status === "error" && showRetryLogging && (
-                    <div className="flex justify-center">
-                      <button
-                        type="button"
-                        onClick={handleRetryLogging}
-                        disabled={isRetrying}
-                        className="inline-flex rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-50 disabled:opacity-60"
-                      >
-                        {isRetrying ? "Retrying..." : "Retry on-chain logging"}
-                      </button>
-                    </div>
-                  )}
-
-                  {activeRun.status === "success" &&
-                    !dismissedFeedbackRunIds.has(activeRun.id) && (
-                      <PostSuccessFeedback
-                        runId={activeRun.id}
-                        onDismiss={(runId) =>
-                          setDismissedFeedbackRunIds((current) =>
-                            new Set(current).add(runId),
-                          )
-                        }
-                      />
-                    )}
-                </section>
-              )}
+        <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+          {globalError && (
+            <div
+              className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-5 py-4"
+              role="alert"
+            >
+              <p className="text-sm font-medium text-red-800">
+                {pipelineErrorTitle(globalError.step)}
+              </p>
+              <p className="mt-1 text-sm text-red-700">
+                {globalError.error}
+                {globalError.retryAfterSeconds
+                  ? ` Try again in ${globalError.retryAfterSeconds}s.`
+                  : ""}
+              </p>
             </div>
           )}
+
+          <ConversationThread runs={runs} />
+
+          {showRetryLogging && (
+            <div className="flex justify-start pb-4">
+              <button
+                type="button"
+                onClick={handleRetryLogging}
+                disabled={isRetrying}
+                className="inline-flex rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+              >
+                {isRetrying ? "Retrying..." : "Retry on-chain logging"}
+              </button>
+            </div>
+          )}
+
+          {latestRun?.status === "success" &&
+            !dismissedFeedbackRunIds.has(latestRun.id) && (
+              <div className="pb-4">
+                <PostSuccessFeedback
+                  runId={latestRun.id}
+                  onDismiss={(runId) =>
+                    setDismissedFeedbackRunIds((current) =>
+                      new Set(current).add(runId),
+                    )
+                  }
+                />
+              </div>
+            )}
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-zinc-100 bg-white px-4 pb-5 pt-3 sm:px-6">
+      <div className="shrink-0 border-t border-zinc-100 bg-white px-4 pb-4 pt-2 sm:px-6">
         <div className="mx-auto w-full max-w-3xl">
-          <ChatInput
-            value={instruction}
-            onChange={setInstruction}
-            isGitHubConnected={isGitHubReady}
-            repos={repos}
-            reposLoading={reposLoading}
-            reposError={reposError}
-            selectedRepo={selectedRepo}
-            onSelectRepo={setSelectedRepo}
-            canRun={isReady && !isChecking}
-            isSubmitting={isSubmitting}
-            onSubmit={() => void handleSubmit()}
-          />
+          <ChatInput {...chatInputProps} variant="bottom" />
 
           {!isReady && !isChecking && isWalletReady && !isGitHubReady && (
             <p className="mt-2 text-center text-sm text-zinc-500">

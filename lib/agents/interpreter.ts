@@ -10,9 +10,57 @@ export type InterpretResult =
   | { success: true; plan: TaskPlan }
   | { success: false; error: string };
 
+const GITHUB_REPO_URL_PATTERN =
+  /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-z0-9_.-]+)\/([a-z0-9_.-]+)/i;
+
 const REPO_FULL_NAME_PATTERN = /\b([a-z0-9_.-]+\/[a-z0-9_.-]+)\b/i;
 
+const RESERVED_GITHUB_PATHS = new Set([
+  "settings",
+  "orgs",
+  "organizations",
+  "marketplace",
+  "explore",
+  "topics",
+  "collections",
+  "events",
+  "sponsors",
+  "login",
+  "join",
+  "features",
+  "enterprise",
+  "pricing",
+  "about",
+  "security",
+  "customer-stories",
+  "readme",
+  "pulls",
+  "issues",
+  "notifications",
+]);
+
+export function extractRepoFromGitHubUrl(text: string): string | null {
+  const match = text.match(GITHUB_REPO_URL_PATTERN);
+  if (!match?.[1] || !match[2]) {
+    return null;
+  }
+
+  const owner = match[1];
+  const repo = match[2].replace(/\.git$/i, "").split(/[?#]/)[0];
+
+  if (!owner || !repo || RESERVED_GITHUB_PATHS.has(owner.toLowerCase())) {
+    return null;
+  }
+
+  return `${owner}/${repo}`;
+}
+
 function extractRepoFromText(text: string): string | null {
+  const fromUrl = extractRepoFromGitHubUrl(text);
+  if (fromUrl) {
+    return fromUrl;
+  }
+
   const match = text.match(REPO_FULL_NAME_PATTERN);
   if (!match?.[1]) {
     return null;
@@ -34,18 +82,22 @@ function mentionsLatestRepo(text: string): boolean {
   );
 }
 
+function hasGitHubRepoReference(text: string): boolean {
+  return (
+    GITHUB_REPO_URL_PATTERN.test(text) ||
+    REPO_FULL_NAME_PATTERN.test(text) ||
+    /\b(repo(sitory)?|readme|read\s*me|description|@readme\.md)\b/i.test(text)
+  );
+}
+
 function matchesRepoIntent(text: string): boolean {
   const normalized = text.trim().toLowerCase();
   const action =
-    /\b(summar(?:y|ize|ise)|detail|describe|explain|tell|overview|about|what is|give me)\b/.test(
-      normalized,
-    );
-  const repoContext =
-    /\b(repo(sitory)?|readme|read\s*me|description|@readme\.md)\b/.test(
+    /\b(summar(?:y|ize|ise)|detail|describe|explain|tell|overview|about|what is|give me|brief)\b/.test(
       normalized,
     );
 
-  return action && repoContext;
+  return action && hasGitHubRepoReference(text);
 }
 
 function matchesNotificationIntent(text: string): boolean {
@@ -72,12 +124,12 @@ function resolveRepoFullName(
     return explicit;
   }
 
-  if (selectedRepo?.trim()) {
-    return selectedRepo.trim();
-  }
-
   if (mentionsLatestRepo(text)) {
     return null;
+  }
+
+  if (selectedRepo?.trim()) {
+    return selectedRepo.trim();
   }
 
   return null;
@@ -124,12 +176,20 @@ export function interpret(
   }
 
   const selectedRepo = options.selectedRepo?.trim() || null;
-  const repoFullName = resolveRepoFullName(trimmed, selectedRepo);
+  const urlRepo = extractRepoFromGitHubUrl(trimmed);
+  const repoFullName = urlRepo ?? resolveRepoFullName(trimmed, selectedRepo);
+
+  if (urlRepo) {
+    return {
+      success: true,
+      plan: buildRepoPlan(urlRepo),
+    };
+  }
 
   if (matchesRepoIntent(trimmed)) {
     return {
       success: true,
-      plan: buildRepoPlan(repoFullName ?? selectedRepo),
+      plan: buildRepoPlan(repoFullName),
     };
   }
 
@@ -140,17 +200,26 @@ export function interpret(
     };
   }
 
-  if (selectedRepo && /\b(summar|detail|describe|explain|tell|about|readme|description)\b/i.test(trimmed)) {
+  if (
+    selectedRepo &&
+    /\b(summar|detail|describe|explain|tell|about|readme|description|brief)\b/i.test(
+      trimmed,
+    )
+  ) {
     return {
       success: true,
       plan: buildRepoPlan(selectedRepo),
     };
   }
 
-  if (/\b(summar|detail|describe|explain|tell|about|readme|description|repo)\b/i.test(trimmed)) {
+  if (
+    /\b(summar|detail|describe|explain|tell|about|readme|description|repo|brief)\b/i.test(
+      trimmed,
+    )
+  ) {
     return {
       success: true,
-      plan: buildRepoPlan(repoFullName ?? selectedRepo),
+      plan: buildRepoPlan(repoFullName),
     };
   }
 

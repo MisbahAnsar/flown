@@ -34,12 +34,12 @@ export function GitHubConnectInline({
       type="button"
       onClick={handleConnect}
       disabled={disabled || isConnecting}
-      className="inline-flex items-center gap-2 rounded-full border border-zinc-600/80 bg-zinc-700/80 px-3 py-1.5 text-sm text-zinc-100 transition hover:bg-zinc-600/80 disabled:opacity-50"
+      className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50"
     >
       {isConnecting ? (
         <>
           <span
-            className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-500 border-t-zinc-100"
+            className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700"
             aria-hidden
           />
           Connecting...

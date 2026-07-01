@@ -35,7 +35,7 @@ export function RepoSelector({
         type="button"
         onClick={() => setOpen((value) => !value)}
         disabled={disabled || isLoading}
-        className="inline-flex max-w-[11rem] items-center gap-2 rounded-full border border-zinc-600/80 bg-zinc-700/80 px-3 py-1.5 text-sm text-zinc-100 transition hover:bg-zinc-600/80 disabled:opacity-50 sm:max-w-[14rem]"
+        className="inline-flex max-w-[11rem] items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 sm:max-w-[14rem]"
         aria-expanded={open}
         aria-haspopup="listbox"
       >

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   interpret,
+  extractRepoFromGitHubUrl,
   SUPPORTED_INSTRUCTION_EXAMPLE,
   SUPPORTED_REPO_EXAMPLE,
 } from "./interpreter";
@@ -59,6 +60,35 @@ describe("interpret", () => {
 
     expect(result.plan.intent).toBe("summarize_github_repo");
     expect(result.plan.repoFullName).toBe("flowms/core");
+  });
+
+  test("extracts repo from a GitHub URL over selected repo", () => {
+    const url =
+      "can you give me a small brief on this repo: https://github.com/TechyCSR/OpenCluely";
+    const result = interpret(url, { selectedRepo: "MisbahAnsar/flown" });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+
+    expect(result.plan.intent).toBe("summarize_github_repo");
+    expect(result.plan.repoFullName).toBe("TechyCSR/OpenCluely");
+    expect(extractRepoFromGitHubUrl(url)).toBe("TechyCSR/OpenCluely");
+  });
+
+  test("latest repo requests do not use selected repo fallback", () => {
+    const result = interpret("please summarize my latest repo", {
+      selectedRepo: "MisbahAnsar/flown",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+
+    expect(result.plan.intent).toBe("summarize_github_repo");
+    expect(result.plan.repoFullName).toBeUndefined();
   });
 
   test("rejects a non-matching instruction with guidance", () => {
