@@ -15,11 +15,6 @@ export interface AgentContext {
   instruction: string;
 }
 
-export interface FetchResult {
-  source: string;
-  data: unknown;
-}
-
 export interface ActionResult {
   success: boolean;
   summary: string;
