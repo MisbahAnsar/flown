@@ -157,12 +157,12 @@ export function AuditTrailPanel() {
   const canGoNext = data ? page + 1 < totalPages : false;
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col px-3 py-6 sm:px-6 sm:py-12">
+    <div className="flex min-w-0 flex-1 flex-col px-3 pb-6 sm:px-6 sm:pb-12">
       <div className="mx-auto w-full min-w-0 max-w-4xl">
         <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-              Audit Trail
+            <h1 className="font-heading text-3xl text-zinc-900 sm:text-4xl">
+              Audit trail
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:text-base">
               The full on-chain history from the Soroban contract. Every logged

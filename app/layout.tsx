@@ -1,18 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { AppFooter } from "@/components/app-footer";
-import { AppHeader } from "@/components/app-header";
+import { Instrument_Serif, Inter } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
-import { OnboardingBanner } from "@/components/onboarding/onboarding-banner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  weight: "400",
   subsets: ["latin"],
 });
 
@@ -61,10 +59,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-  ],
+  themeColor: "#fafafa",
 };
 
 export default function RootLayout({
@@ -75,15 +70,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden">
-        <AppProviders>
-          <AppHeader />
-          <OnboardingBanner />
-          <main className="flex min-w-0 flex-1 flex-col">{children}</main>
-          <AppFooter />
-        </AppProviders>
+      <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden bg-[#fafafa] text-zinc-900">
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

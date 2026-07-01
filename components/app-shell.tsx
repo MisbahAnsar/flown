@@ -1,65 +1,34 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState } from "react";
 import { AuditTrailPanel } from "@/components/audit/audit-trail-panel";
+import { AppSidebar, type AppTab } from "@/components/app/app-sidebar";
 import { InstructionPanel } from "@/components/instruction-panel";
 import { trackAuditTrailViewed } from "@/lib/monitoring/analytics";
 
-type AppTab = "chat" | "audit";
-
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<AppTab>("chat");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  useEffect(() => {
-    if (activeTab === "audit") {
+  function selectTab(tab: AppTab) {
+    setActiveTab(tab);
+    if (tab === "audit") {
       trackAuditTrailViewed();
     }
-  }, [activeTab]);
+  }
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
-      <div className="border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-black/90">
-        <div className="mx-auto flex w-full max-w-6xl min-w-0 gap-2 overflow-x-auto px-3 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
-          <TabButton
-            active={activeTab === "chat"}
-            onClick={() => setActiveTab("chat")}
-          >
-            Chat
-          </TabButton>
-          <TabButton
-            active={activeTab === "audit"}
-            onClick={() => setActiveTab("audit")}
-          >
-            Audit Trail
-          </TabButton>
-        </div>
+    <div className="flex min-h-0 min-w-0 flex-1">
+      <AppSidebar
+        open={sidebarOpen}
+        onToggle={() => setSidebarOpen((value) => !value)}
+        activeTab={activeTab}
+        onTabChange={selectTab}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-white pt-[22vh]">
+        {activeTab === "chat" ? <InstructionPanel /> : <AuditTrailPanel />}
       </div>
-
-      {activeTab === "chat" ? <InstructionPanel /> : <AuditTrailPanel />}
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
-        active
-          ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-          : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
-      }`}
-    >
-      {children}
-    </button>
   );
 }

@@ -2,7 +2,7 @@
 
 **Natural-language instructions, executed by agents, logged on-chain.**
 
-Give flowms a plain-English instruction — for example, *"Summarize my GitHub notifications"* — and a three-agent pipeline interprets it, fetches the data, acts on it, and writes an immutable audit entry to a Soroban smart contract on Stellar testnet. Every step is verifiable: the UI shows live agent activity, and the Audit Trail tab reads the full on-chain history.
+Give flowms a plain-English instruction — for example, *"Summarize my GitHub notifications"* — and a three-agent pipeline interprets it, fetches the data, acts on it, and writes an immutable audit entry to a Soroban smart contract on Stellar testnet. Every step is verifiable: the UI shows live agent activity, and the Audit Trail view reads the full on-chain history from the workspace sidebar.
 
 **Problem:** AI agents often act on your behalf with no durable, public record of *what* ran, *when*, and *with what outcome*. flowms treats transparency as a first-class feature: the agent pipeline is visible in real time, and the Actor agent persists each action to an append-only Soroban contract so anyone can inspect the log.
 
@@ -102,9 +102,9 @@ Replace each placeholder with a captured PNG saved under `docs/screenshots/`.
 
 | Placeholder | What to capture |
 |---|---|
-| `[INSERT SCREENSHOT: desktop chat UI]` | Chat tab after a successful run — instruction input, live activity feed, summary, and Stellar Expert link |
-| `[INSERT SCREENSHOT: mobile view]` | Same flow at ~390px width — header buttons, onboarding banner, stacked layout |
-| `[INSERT SCREENSHOT: audit trail]` | Audit Trail tab — paginated on-chain history with proof links |
+| `[INSERT SCREENSHOT: desktop chat UI]` | Workspace view after a successful run — instruction input, live activity feed, summary, and Stellar Expert link |
+| `[INSERT SCREENSHOT: mobile view]` | Same flow at ~390px width — collapsible sidebar, chat input, stacked layout |
+| `[INSERT SCREENSHOT: audit trail]` | Audit Trail view from the sidebar — paginated on-chain history with proof links |
 | `[INSERT SCREENSHOT: analytics dashboard]` | Vercel → Project → Analytics — page views and custom events |
 
 Suggested filenames once captured:
@@ -185,7 +185,7 @@ bun run build    # production build
 cd contracts && cargo test   # contract tests
 ```
 
-**First-run flow:** Sign in with GitHub → Connect Freighter (testnet) → send *Summarize my GitHub notifications* → open **Audit Trail**.
+**First-run flow:** Connect Freighter (testnet) → open **Workspace** in the sidebar → connect GitHub in the chat bar → send *Summarize my GitHub notifications* → switch to **Audit Trail** in the sidebar. The workspace has no top navbar; navigation and disconnect actions live in the sidebar.
 
 ---
 
@@ -239,7 +239,7 @@ These extend the same Interpreter → Fetcher → Actor pattern with new tools a
 
 ```
 app/           Next.js pages and API routes
-components/    UI (chat, audit trail, wallet, auth, feedback)
+components/    UI (landing, sidebar, chat, audit trail, wallet, auth, feedback)
 lib/agents/    Interpreter, Fetcher, Actor
 lib/pipeline/  Orchestration and API types
 lib/stellar/   Soroban client and audit trail reads
