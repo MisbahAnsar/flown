@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth-server";
+import { captureMonitoringException, capturePipelineFailure } from "@/lib/monitoring/sentry";
 import { isValidWalletAddress } from "@/lib/pipeline/run-instruction";
 import { retryLoggingPipeline } from "@/lib/pipeline/retry-logging-pipeline";
 import { RetryLoggingRequestSchema } from "@/lib/pipeline/retry-logging";
@@ -50,11 +51,26 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await retryLoggingPipeline(parsed.data, session.user.id);
+  try {
+    const result = await retryLoggingPipeline(parsed.data, session.user.id);
 
-  if (!result.ok) {
-    return NextResponse.json(result.error, { status: result.status });
+    if (!result.ok) {
+      capturePipelineFailure(result.error, {
+        route: "/api/retry-logging",
+        status: result.status,
+      });
+      return NextResponse.json(result.error, { status: result.status });
+    }
+
+    return NextResponse.json(result.data);
+  } catch (error) {
+    captureMonitoringException(error, { route: "/api/retry-logging" });
+    return NextResponse.json(
+      {
+        step: "actor",
+        error: "An unexpected server error occurred while retrying logging.",
+      },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json(result.data);
 }

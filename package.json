@@ -10,8 +10,10 @@
     "test": "bun test lib"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.62.0",
     "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^16.0.1",
+    "@vercel/analytics": "^2.0.1",
     "next": "16.2.9",
     "next-auth": "^4.24.14",
     "react": "19.2.4",

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { captureMonitoringException } from "@/lib/monitoring/sentry";
 import {
   AuditTrailQuerySchema,
   fetchAuditTrailPage,
@@ -18,14 +19,26 @@ export async function GET(request: Request) {
     );
   }
 
-  const result = await fetchAuditTrailPage(
-    parsed.data.start,
-    parsed.data.limit,
-  );
+  try {
+    const result = await fetchAuditTrailPage(
+      parsed.data.start,
+      parsed.data.limit,
+    );
 
-  if (!result.success) {
-    return NextResponse.json({ error: result.error }, { status: 503 });
+    if (!result.success) {
+      captureMonitoringException(new Error(result.error), {
+        route: "/api/audit-trail",
+        surface: "audit_trail_rpc",
+      });
+      return NextResponse.json({ error: result.error }, { status: 503 });
+    }
+
+    return NextResponse.json(result.data);
+  } catch (error) {
+    captureMonitoringException(error, { route: "/api/audit-trail" });
+    return NextResponse.json(
+      { error: "Failed to load audit trail." },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json(result.data);
 }

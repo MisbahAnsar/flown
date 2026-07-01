@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { captureMonitoringException } from "@/lib/monitoring/sentry";
 
 export default function Error({
   error,
@@ -11,6 +12,7 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error("[flowm] Route error:", error);
+    captureMonitoringException(error, { surface: "route_error" });
   }, [error]);
 
   return (

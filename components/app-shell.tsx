@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AuditTrailPanel } from "@/components/audit/audit-trail-panel";
 import { InstructionPanel } from "@/components/instruction-panel";
+import { trackAuditTrailViewed } from "@/lib/monitoring/analytics";
 
 type AppTab = "chat" | "audit";
 
 export function AppShell() {
   const [activeTab, setActiveTab] = useState<AppTab>("chat");
+
+  useEffect(() => {
+    if (activeTab === "audit") {
+      trackAuditTrailViewed();
+    }
+  }, [activeTab]);
 
   return (
     <div className="flex min-w-0 flex-1 flex-col">

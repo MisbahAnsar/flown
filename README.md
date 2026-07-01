@@ -59,6 +59,30 @@ Verified after deploy: `get_action_count` returns `0`.
 
 Build and deploy steps are documented in [`contracts/README.md`](contracts/README.md).
 
+## Monitoring & Analytics
+
+flowm uses lightweight, privacy-conscious monitoring so you can tell whether real users are getting value — without shipping secrets to third parties.
+
+### What is tracked
+
+| Signal | Tool | Data sent |
+|---|---|---|
+| Page views | [Vercel Web Analytics](https://vercel.com/docs/analytics) | Route visits (automatic) |
+| Wallet connected | Vercel custom event | `is_testnet` only |
+| GitHub authenticated | Vercel custom event | Event name only (once per browser session) |
+| Instruction submitted / succeeded / failed | Vercel custom event | Failed events include `step` (`interpreter`, `fetcher`, `actor`, etc.) |
+| Audit trail viewed | Vercel custom event | Event name only |
+| Pipeline & UI errors | [Sentry](https://sentry.io) | Agent step, HTTP status, error message — **no** instruction text, GitHub tokens, wallet addresses, or `STELLAR_SECRET_KEY` |
+
+**Never sent to analytics or Sentry:** GitHub access tokens, instruction text, notification summaries, wallet public keys, private keys, or server signing secrets. Scrubbing runs in `lib/monitoring/scrub.ts` before events leave the app.
+
+### Setup
+
+1. **Vercel Analytics** — On a Vercel deploy, open your project → **Analytics** → enable **Web Analytics**. Custom events appear under the Events tab after users interact with the app. To test locally, set `NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED=true` in `.env.local`.
+2. **Sentry** — Create a Sentry project (Next.js). Copy the DSN into `NEXT_PUBLIC_SENTRY_DSN` in Vercel environment variables (and `.env.local` for local testing). View issues at [sentry.io](https://sentry.io) filtered by `pipeline_step` and `route` tags.
+
+Sentry reports operational failures (`fetcher`, `actor`) and unexpected exceptions. Expected user mistakes (unsupported instructions, rate limits, auth) are counted in Vercel Analytics only, to keep error noise low.
+
 ## Live Demo
 
 <!-- To be filled in -->

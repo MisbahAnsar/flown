@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGitHubAccessToken, getSession } from "@/lib/auth-server";
+import { captureMonitoringException, capturePipelineFailure } from "@/lib/monitoring/sentry";
 import { checkRateLimit } from "@/lib/pipeline/rate-limit";
 import {
   isValidWalletAddress,
@@ -96,16 +97,31 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await runInstructionPipeline({
-    instructionText,
-    walletAddress,
-    userId: session.user.id,
-    githubAccessToken,
-  });
+  try {
+    const result = await runInstructionPipeline({
+      instructionText,
+      walletAddress,
+      userId: session.user.id,
+      githubAccessToken,
+    });
 
-  if (!result.ok) {
-    return NextResponse.json(result.error, { status: result.status });
+    if (!result.ok) {
+      capturePipelineFailure(result.error, {
+        route: "/api/run-instruction",
+        status: result.status,
+      });
+      return NextResponse.json(result.error, { status: result.status });
+    }
+
+    return NextResponse.json(result.data);
+  } catch (error) {
+    captureMonitoringException(error, { route: "/api/run-instruction" });
+    return NextResponse.json(
+      {
+        step: "actor",
+        error: "An unexpected server error occurred. Please try again.",
+      },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json(result.data);
 }

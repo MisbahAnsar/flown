@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { FREIGHTER_INSTALL_URL } from "@/lib/stellar/constants";
 import { truncateAddress } from "@/lib/stellar/address";
+import { trackWalletConnected } from "@/lib/monitoring/analytics";
 import { useWallet } from "./wallet-provider";
 
 export function ConnectWallet() {
@@ -65,9 +66,10 @@ export function ConnectWallet() {
     setShowInstallHint(false);
     lastErrorRef.current = null;
 
-    const connected = await connect();
-    if (connected) {
+    const result = await connect();
+    if (result.ok) {
       toast.success("Wallet connected on Stellar testnet.");
+      trackWalletConnected({ isTestnet: result.isTestnet });
     }
   }
 

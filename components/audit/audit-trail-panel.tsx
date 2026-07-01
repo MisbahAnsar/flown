@@ -7,6 +7,7 @@ import {
   stellarExpertContractUrl,
   stellarExpertTxUrl,
 } from "@/lib/pipeline/client";
+import { captureMonitoringException } from "@/lib/monitoring/sentry";
 import { useToast } from "@/components/ui/toast";
 import { useAuditRefresh } from "./audit-refresh-context";
 
@@ -122,6 +123,9 @@ export function AuditTrailPanel() {
         if (lastErrorRef.current !== result.error) {
           lastErrorRef.current = result.error;
           toast.error(`Could not load audit trail — ${result.error}`);
+          captureMonitoringException(new Error(result.error), {
+            surface: "audit_trail_fetch",
+          });
         }
         manualRefreshRef.current = false;
         return;

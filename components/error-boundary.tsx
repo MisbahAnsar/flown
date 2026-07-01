@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { captureMonitoringException } from "@/lib/monitoring/sentry";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export class ErrorBoundary extends Component<
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[flowm] Unexpected UI error:", error, info.componentStack);
+    captureMonitoringException(error, { surface: "error_boundary" });
   }
 
   private handleReload = () => {

@@ -36,7 +36,7 @@ interface WalletContextValue {
   isLoading: boolean;
   error: string | null;
   errorCode: WalletErrorCode | null;
-  connect: () => Promise<boolean>;
+  connect: () => Promise<{ ok: true; isTestnet: boolean } | { ok: false }>;
   disconnect: () => void;
   clearError: () => void;
 }
@@ -122,7 +122,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_DISCONNECTED, "true");
   }, [clearError]);
 
-  const connect = useCallback(async (): Promise<boolean> => {
+  const connect = useCallback(async (): Promise<
+    { ok: true; isTestnet: boolean } | { ok: false }
+  > => {
     setIsLoading(true);
     clearError();
 
@@ -132,7 +134,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setErrorCode("not_installed");
         setError("Freighter is not installed.");
         setStatus("disconnected");
-        return false;
+        return { ok: false };
       }
 
       const access = await requestAccess();
@@ -143,7 +145,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setErrorCode(mapped.code);
         setError(mapped.message);
         setStatus("disconnected");
-        return false;
+        return { ok: false };
       }
 
       const network = await getNetwork();
@@ -152,15 +154,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setErrorCode(mapped.code);
         setError(mapped.message);
         setStatus("disconnected");
-        return false;
+        return { ok: false };
       }
+
+      const onTestnet = network.networkPassphrase === TESTNET_PASSPHRASE;
 
       setPublicKey(access.address);
       setNetworkName(network.network);
-      setIsTestnet(network.networkPassphrase === TESTNET_PASSPHRASE);
+      setIsTestnet(onTestnet);
       setStatus("connected");
       localStorage.removeItem(STORAGE_DISCONNECTED);
-      return true;
+      return { ok: true, isTestnet: onTestnet };
     } catch (err) {
       const mapped = mapFreighterError(
         err instanceof Error ? { message: err.message } : {},
@@ -168,7 +172,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setErrorCode(mapped.code);
       setError(mapped.message);
       setStatus("disconnected");
-      return false;
+      return { ok: false };
     } finally {
       setIsLoading(false);
     }

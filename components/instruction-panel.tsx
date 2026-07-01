@@ -10,6 +10,11 @@ import {
 } from "@/lib/pipeline/client";
 import type { PipelineErrorResponse } from "@/lib/pipeline/types";
 import { useAuditRefresh } from "@/components/audit/audit-refresh-context";
+import {
+  trackInstructionFailed,
+  trackInstructionSubmitted,
+  trackInstructionSucceeded,
+} from "@/lib/monitoring/analytics";
 import { useToast } from "@/components/ui/toast";
 import { useWallet } from "@/components/wallet/wallet-provider";
 import {
@@ -110,6 +115,7 @@ export function InstructionPanel() {
     setGlobalError(null);
     setIsSubmitting(true);
     startProgressTimer(runId);
+    trackInstructionSubmitted();
 
     const result = await postRunInstruction({
       instructionText,
@@ -131,6 +137,7 @@ export function InstructionPanel() {
       if (!failedPipelineStep) {
         setGlobalError(error);
         toast.error(error.error);
+        trackInstructionFailed(error.step);
         setRuns((current) =>
           updateRun(current, runId, {
             status: "error",
@@ -157,6 +164,7 @@ export function InstructionPanel() {
         });
       });
       toast.error(error.error);
+      trackInstructionFailed(failedPipelineStep);
       return;
     }
 
@@ -175,6 +183,7 @@ export function InstructionPanel() {
       stellarTxHash: result.data.stellarTxHash,
     });
     toast.success("Instruction logged on-chain.");
+    trackInstructionSucceeded();
   }
 
   async function handleRetryLogging() {
@@ -213,6 +222,7 @@ export function InstructionPanel() {
         }),
       );
       toast.error(result.error.error);
+      trackInstructionFailed(result.error.step);
       return;
     }
 
@@ -231,6 +241,7 @@ export function InstructionPanel() {
       stellarTxHash: result.data.stellarTxHash,
     });
     toast.success("On-chain logging succeeded.");
+    trackInstructionSucceeded();
   }
 
   const showRetryLogging =
