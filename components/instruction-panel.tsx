@@ -148,6 +148,7 @@ export function InstructionPanel() {
       const failedPipelineStep =
         error.step === "interpreter" ||
         error.step === "fetcher" ||
+        error.step === "thinker" ||
         error.step === "actor"
           ? error.step
           : null;
@@ -408,6 +409,8 @@ function pipelineErrorTitle(
       return "Instruction not understood";
     case "fetcher":
       return "Could not fetch GitHub notifications";
+    case "thinker":
+      return "Could not generate an AI summary";
     case "actor":
       return "On-chain logging failed";
     case "auth":

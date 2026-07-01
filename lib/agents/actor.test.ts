@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { act, retryLogAction } from "./actor";
+import { summarizeGitHubNotifications } from "./summarize";
 import type { FetchResult } from "./fetcher-types";
 import type { TaskPlan } from "./types";
 import type { ActionLogContractClient } from "@/lib/stellar/types";
@@ -36,6 +37,8 @@ const fetchedData: FetchResult = {
   ],
 };
 
+const summary = summarizeGitHubNotifications(fetchedData.data);
+
 function createMockContractClient(
   logAction: ActionLogContractClient["logAction"],
 ): ActionLogContractClient {
@@ -48,7 +51,7 @@ function createMockContractClient(
 
 describe("act", () => {
   test("returns summary and tx hash when Soroban logging succeeds", async () => {
-    const result = await act(taskPlan, fetchedData, {
+    const result = await act(taskPlan, summary, {
       contractClient: createMockContractClient(async () => ({
         success: true,
         txHash: "stellar-tx-hash-123",
@@ -68,7 +71,7 @@ describe("act", () => {
   });
 
   test("returns logging_failed with preserved summary when Soroban logging fails", async () => {
-    const result = await act(taskPlan, fetchedData, {
+    const result = await act(taskPlan, summary, {
       contractClient: createMockContractClient(async () => ({
         success: false,
         error: {
@@ -113,7 +116,7 @@ describe("retryLogAction", () => {
       };
     });
 
-    const firstAttempt = await act(taskPlan, fetchedData, {
+    const firstAttempt = await act(taskPlan, summary, {
       contractClient: failingThenSuccessfulClient,
     });
 

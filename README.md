@@ -27,7 +27,7 @@ Give flowms a plain-English instruction — for example, *"Summarize my GitHub n
 
 ## Architecture
 
-flowms runs a linear **Interpreter → Fetcher → Actor** pipeline. Each agent has a narrow job; only the Actor writes to Stellar.
+flowms runs a linear **Interpreter → Fetcher → Thinker → Actor** pipeline. Each agent has a narrow job; only the Actor writes to Stellar.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,8 @@ flowchart LR
   UI --> API["/api/run-instruction"]
   API --> I[Interpreter]
   I -->|TaskPlan| F[Fetcher]
-  F -->|GitHub notifications| A[Actor]
+  F -->|GitHub notifications| T[Thinker]
+  T -->|AI summary| A[Actor]
   A -->|log_action| SC[(Soroban contract)]
   A --> UI
   SC --> Audit[Audit Trail panel]
@@ -45,7 +46,8 @@ flowchart LR
 |---|---|---|
 | **Interpreter** | Validates natural language and builds a structured `TaskPlan` | None |
 | **Fetcher** | Reads unread GitHub notifications via the GitHub API | Read-only |
-| **Actor** | Summarizes results and submits `log_action` to Soroban | On-chain write |
+| **Thinker** | Summarizes fetched data with Gemini AI | None |
+| **Actor** | Logs the action hash and summary outcome to Soroban | On-chain write |
 
 **Signing model:** Soroban transactions are signed server-side with a dedicated testnet account (`STELLAR_SECRET_KEY`) so pipeline runs do not require repeated Freighter popups. Freighter is still required in the UI so users connect a Stellar testnet identity; the connected wallet gates API access.
 
@@ -153,6 +155,8 @@ cp .env.local.example .env.local
 | `STELLAR_RPC_URL` | Yes | Default Soroban testnet RPC in example file |
 | `STELLAR_CONTRACT_ID` | Yes | Deployed contract ID (default in example file) |
 | `STELLAR_SECRET_KEY` | Yes | Server signing key for `log_action` |
+| `GEMINI_API_KEY` | Yes* | Google Gemini API key for Thinker summaries (*falls back to template summary if unset) |
+| `GEMINI_MODEL` | No | Gemini model id (default: `gemini-2.0-flash`) |
 | `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry error monitoring |
 | `NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED` | No | Set `true` to test analytics locally |
 

@@ -1,7 +1,5 @@
 import { hashInstruction, hashInstructionHex } from "@/lib/stellar/hash";
 import type { TaskPlan } from "./types";
-import type { FetchResult } from "./fetcher-types";
-import { summarizeGitHubNotifications } from "./summarize";
 import type {
   ActorDeps,
   ActorLoggingFailure,
@@ -79,13 +77,21 @@ async function submitLogAction(
  */
 export async function act(
   taskPlan: TaskPlan,
-  fetchedData: FetchResult,
+  summary: string,
   deps: ActorDeps = {},
 ): Promise<ActorResult> {
   switch (taskPlan.intent) {
     case "summarize_github_notifications": {
-      const summary = summarizeGitHubNotifications(fetchedData.data);
-      const prepared = buildPreparedLog(taskPlan, summary);
+      const trimmed = summary.trim();
+      if (!trimmed) {
+        return {
+          success: false,
+          code: "unsupported_intent",
+          error: "Summary from Thinker was empty.",
+        };
+      }
+
+      const prepared = buildPreparedLog(taskPlan, trimmed);
       return submitLogAction(taskPlan, prepared, deps);
     }
     default: {

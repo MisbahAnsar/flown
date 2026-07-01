@@ -1,6 +1,6 @@
 import { sanitizeAnalyticsProperties } from "@/lib/monitoring/scrub";
 
-type AgentName = "pipeline" | "interpreter" | "fetcher" | "actor";
+type AgentName = "pipeline" | "interpreter" | "fetcher" | "thinker" | "actor";
 
 export function logPipeline(
   agent: AgentName,

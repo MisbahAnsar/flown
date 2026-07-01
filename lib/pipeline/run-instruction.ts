@@ -2,8 +2,10 @@ import { StrKey } from "@stellar/stellar-sdk";
 import { act } from "@/lib/agents/actor";
 import { fetch } from "@/lib/agents/fetcher";
 import { interpret } from "@/lib/agents/interpreter";
+import { think } from "@/lib/agents/thinker";
 import type { ActorDeps } from "@/lib/agents/actor-types";
 import type { FetcherDeps } from "@/lib/agents/fetcher-types";
+import type { ThinkerDeps } from "@/lib/agents/thinker-types";
 import {
   createServerSignedContractClient,
   getStellarConfig,
@@ -19,6 +21,7 @@ import type {
 
 export interface PipelineDeps {
   fetcher?: FetcherDeps;
+  thinker?: ThinkerDeps;
   actor?: ActorDeps;
   contractClient?: ActionLogContractClient;
 }
@@ -108,8 +111,38 @@ export async function runInstructionPipeline(
     count: fetched.result.data.length,
   });
 
+  const thought = await think(
+    taskPlan,
+    fetched.result,
+    instructionText,
+    deps.thinker,
+  );
+
+  if (!thought.success) {
+    logPipeline("thinker", "failed", {
+      userId,
+      instructionId: taskPlan.instructionId,
+      error: thought.error.message,
+    });
+
+    return {
+      ok: false,
+      status: 502,
+      error: {
+        step: "thinker",
+        error: thought.error.message,
+      },
+    };
+  }
+
+  logPipeline("thinker", "summary generated", {
+    userId,
+    instructionId: taskPlan.instructionId,
+    usedAi: thought.usedAi,
+  });
+
   const contractClient = await resolveContractClient(deps);
-  const acted = await act(taskPlan, fetched.result, {
+  const acted = await act(taskPlan, thought.summary, {
     ...deps.actor,
     contractClient: deps.actor?.contractClient ?? contractClient ?? undefined,
   });

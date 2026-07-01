@@ -2,7 +2,7 @@
 
 import type { PipelineStep } from "@/lib/pipeline/types";
 
-export type FeedStepId = "interpreter" | "fetcher" | "actor" | "done";
+export type FeedStepId = "interpreter" | "fetcher" | "thinker" | "actor" | "done";
 
 export type StepStatus = "pending" | "running" | "success" | "error" | "skipped";
 
@@ -28,6 +28,11 @@ export const FEED_STEPS: Array<{
     id: "fetcher",
     label: "Fetcher",
     description: "Reading unread GitHub notifications",
+  },
+  {
+    id: "thinker",
+    label: "Thinker",
+    description: "Summarizing with Gemini AI",
   },
   {
     id: "actor",
@@ -79,7 +84,13 @@ export function startPipelineSteps(): FeedStep[] {
   }));
 }
 
-const STEP_ORDER: FeedStepId[] = ["interpreter", "fetcher", "actor", "done"];
+const STEP_ORDER: FeedStepId[] = [
+  "interpreter",
+  "fetcher",
+  "thinker",
+  "actor",
+  "done",
+];
 
 function stepIndexForPipelineStep(step: PipelineStep): number {
   switch (step) {
@@ -87,8 +98,10 @@ function stepIndexForPipelineStep(step: PipelineStep): number {
       return 0;
     case "fetcher":
       return 1;
-    case "actor":
+    case "thinker":
       return 2;
+    case "actor":
+      return 3;
     default:
       return -1;
   }
@@ -121,7 +134,7 @@ export function applyPipelineSuccess(steps: FeedStep[]): FeedStep[] {
 
 export function applyRetryActorSteps(steps: FeedStep[]): FeedStep[] {
   return steps.map((step) => {
-    if (step.id === "interpreter" || step.id === "fetcher") {
+    if (step.id === "interpreter" || step.id === "fetcher" || step.id === "thinker") {
       return { ...step, status: "success" };
     }
     if (step.id === "actor") {

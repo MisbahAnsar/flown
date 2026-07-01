@@ -11,6 +11,7 @@ export type PipelineStep =
   | "rate_limit"
   | "interpreter"
   | "fetcher"
+  | "thinker"
   | "actor";
 
 export type PipelineErrorResponse = {
