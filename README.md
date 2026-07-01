@@ -4,7 +4,11 @@ flowm is a Next.js app where a user gives one natural language instruction (for 
 
 ## Setup
 
-<!-- To be filled in -->
+1. Install dependencies: `bun install`
+2. Copy `.env.local.example` to `.env.local` and fill in the values.
+3. Install the [Freighter](https://www.freighter.app/) browser extension and switch it to **Testnet**. flowm requires Freighter to connect your Stellar wallet in the app header.
+4. Run the dev server: `bun dev`
+5. Open [http://localhost:3000](http://localhost:3000) and click **Connect Wallet**.
 
 ## Architecture
 
