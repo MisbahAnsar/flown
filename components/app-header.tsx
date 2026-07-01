@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { GitHubAuth } from "@/components/auth/github-auth";
+import { FeedbackButton } from "@/components/feedback/feedback-button";
 import { ConnectWallet } from "@/components/wallet/connect-wallet";
 
 export function AppHeader() {
@@ -16,6 +17,7 @@ export function AppHeader() {
           flowm
         </Link>
         <div className="flex min-w-0 shrink items-center justify-end gap-1.5 sm:gap-2">
+          <FeedbackButton />
           <Suspense
             fallback={
               <div className="h-9 w-[4.5rem] animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800 sm:h-10 sm:w-28" />

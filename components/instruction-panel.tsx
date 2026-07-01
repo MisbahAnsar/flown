@@ -17,6 +17,7 @@ import {
 } from "@/lib/monitoring/analytics";
 import { useToast } from "@/components/ui/toast";
 import { useWallet } from "@/components/wallet/wallet-provider";
+import { PostSuccessFeedback } from "@/components/feedback/post-success-feedback";
 import {
   advanceRunningStep,
   applyPipelineError,
@@ -58,6 +59,9 @@ export function InstructionPanel() {
   const [globalError, setGlobalError] = useState<PipelineErrorResponse | null>(
     null,
   );
+  const [dismissedFeedbackRunIds, setDismissedFeedbackRunIds] = useState<
+    Set<string>
+  >(() => new Set());
 
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -371,6 +375,16 @@ export function InstructionPanel() {
                   >
                     View transaction on Stellar Expert
                   </a>
+                )}
+                {!dismissedFeedbackRunIds.has(activeRun.id) && (
+                  <PostSuccessFeedback
+                    runId={activeRun.id}
+                    onDismiss={(runId) =>
+                      setDismissedFeedbackRunIds((current) =>
+                        new Set(current).add(runId),
+                      )
+                    }
+                  />
                 )}
               </div>
             )}

@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppFooter } from "@/components/app-footer";
 import { AppHeader } from "@/components/app-header";
 import { AppProviders } from "@/components/app-providers";
+import { OnboardingBanner } from "@/components/onboarding/onboarding-banner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -78,7 +80,9 @@ export default function RootLayout({
       <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden">
         <AppProviders>
           <AppHeader />
+          <OnboardingBanner />
           <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+          <AppFooter />
         </AppProviders>
       </body>
     </html>

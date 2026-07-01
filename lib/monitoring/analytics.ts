@@ -9,7 +9,8 @@ export type FlowmAnalyticsEvent =
   | "instruction_submitted"
   | "instruction_succeeded"
   | "instruction_failed"
-  | "audit_trail_viewed";
+  | "audit_trail_viewed"
+  | "feedback_submitted";
 
 function emit(
   name: FlowmAnalyticsEvent,
@@ -46,4 +47,23 @@ export function trackInstructionFailed(step: PipelineStep): void {
 
 export function trackAuditTrailViewed(): void {
   emit("audit_trail_viewed");
+}
+
+export function trackFeedbackSubmitted(input: {
+  rating: "up" | "down";
+  source: "post_success" | "modal";
+  comment?: string;
+}): void {
+  const trimmed = input.comment?.trim();
+  emit("feedback_submitted", {
+    rating: input.rating,
+    source: input.source,
+    has_comment: Boolean(trimmed),
+    comment_length: trimmed?.length ?? 0,
+    ...(trimmed
+      ? {
+          feedback_comment: trimmed.slice(0, 200),
+        }
+      : {}),
+  });
 }
