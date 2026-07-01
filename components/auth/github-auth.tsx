@@ -3,29 +3,42 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/ui/toast";
 
 const AUTH_ERRORS: Record<string, string> = {
   OAuthSignin: "Could not start GitHub sign-in. Check your OAuth app settings.",
   OAuthCallback: "GitHub sign-in was interrupted. Please try again.",
-  OAuthAccountNotLinked: "This GitHub account is already linked to another user.",
-  AccessDenied: "GitHub access was denied.",
-  Configuration: "Auth is misconfigured. Check server environment variables.",
-  Default: "Sign-in failed. Please try again.",
+  OAuthAccountNotLinked:
+    "This GitHub account is already linked to another user.",
+  AccessDenied: "GitHub access was denied. Approve the request to continue.",
+  Configuration:
+    "GitHub sign-in is misconfigured. Check NEXTAUTH_URL and OAuth credentials.",
+  Default: "GitHub sign-in failed. Please try again.",
 };
 
 export function GitHubAuth() {
+  const toast = useToast();
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const shownUrlErrorRef = useRef<string | null>(null);
 
   useEffect(() => {
     const authError = searchParams.get("error");
-    if (authError) {
-      setError(AUTH_ERRORS[authError] ?? AUTH_ERRORS.Default);
+    if (!authError) {
+      return;
     }
-  }, [searchParams]);
+
+    const message = AUTH_ERRORS[authError] ?? AUTH_ERRORS.Default;
+    setError(message);
+
+    if (shownUrlErrorRef.current !== authError) {
+      shownUrlErrorRef.current = authError;
+      toast.error(message);
+    }
+  }, [searchParams, toast]);
 
   async function handleSignIn() {
     setError(null);
@@ -33,17 +46,28 @@ export function GitHubAuth() {
     try {
       await signIn("github", { callbackUrl: "/" });
     } catch {
-      setError(AUTH_ERRORS.Default);
+      const message = AUTH_ERRORS.Default;
+      setError(message);
+      toast.error(message);
       setIsSigningIn(false);
     }
   }
 
+  function handleSignOut() {
+    toast.info("Signed out of GitHub.");
+    void signOut({ callbackUrl: "/" });
+  }
+
   if (status === "loading") {
     return (
-      <div className="inline-flex h-9 min-w-[5.5rem] items-center justify-center rounded-full border border-zinc-200 px-3 dark:border-zinc-700 sm:h-10 sm:min-w-[7rem]">
+      <div
+        className="inline-flex h-9 min-w-[4.5rem] items-center justify-center rounded-full border border-zinc-200 px-2.5 dark:border-zinc-700 sm:h-10 sm:min-w-[7rem] sm:px-3"
+        aria-busy="true"
+        aria-label="Checking GitHub session"
+      >
         <span
           className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700 dark:border-zinc-600 dark:border-t-zinc-200"
-          aria-label="Loading session"
+          aria-hidden
         />
       </div>
     );
@@ -53,18 +77,18 @@ export function GitHubAuth() {
     const label = session.user.username ?? session.user.name ?? "GitHub user";
 
     return (
-      <div className="flex flex-col items-end gap-1">
-        <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex max-w-[8.5rem] flex-col items-end sm:max-w-none">
+        <div className="flex max-w-full items-center gap-1 sm:gap-1.5">
           {session.user.image ? (
             <Image
               src={session.user.image}
               alt=""
               width={28}
               height={28}
-              className="h-7 w-7 rounded-full border border-zinc-200 dark:border-zinc-700"
+              className="h-7 w-7 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700"
             />
           ) : (
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-200 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
               {label.charAt(0).toUpperCase()}
             </span>
           )}
@@ -76,8 +100,8 @@ export function GitHubAuth() {
           </span>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="rounded-full border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 sm:px-3 sm:text-sm"
+            onClick={handleSignOut}
+            className="shrink-0 rounded-full border border-zinc-200 px-2 py-1.5 text-[11px] font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 sm:px-3 sm:text-sm"
           >
             <span className="sm:hidden" aria-label="Sign out of GitHub">
               Out
@@ -90,12 +114,12 @@ export function GitHubAuth() {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex max-w-[8.5rem] flex-col items-end sm:max-w-none">
       <button
         type="button"
         onClick={handleSignIn}
         disabled={isSigningIn}
-        className="inline-flex min-w-[5.5rem] items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 sm:min-w-0 sm:px-4 sm:py-2.5 sm:text-sm"
+        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 py-2 text-[11px] font-medium text-zinc-900 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
       >
         {isSigningIn ? (
           <>
@@ -116,7 +140,7 @@ export function GitHubAuth() {
       </button>
       {error && (
         <p
-          className="max-w-[10rem] text-right text-xs text-red-600 dark:text-red-400 sm:max-w-xs"
+          className="mt-1 max-w-[9rem] text-right text-[11px] leading-tight text-red-600 dark:text-red-400 sm:max-w-xs sm:text-xs"
           role="alert"
         >
           {error}
@@ -128,11 +152,7 @@ export function GitHubAuth() {
 
 function GitHubIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden
-      className="h-4 w-4 fill-current"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 fill-current">
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
     </svg>
   );

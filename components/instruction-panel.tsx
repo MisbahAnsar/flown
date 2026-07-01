@@ -10,6 +10,7 @@ import {
 } from "@/lib/pipeline/client";
 import type { PipelineErrorResponse } from "@/lib/pipeline/types";
 import { useAuditRefresh } from "@/components/audit/audit-refresh-context";
+import { useToast } from "@/components/ui/toast";
 import { useWallet } from "@/components/wallet/wallet-provider";
 import {
   advanceRunningStep,
@@ -38,6 +39,7 @@ function updateRun(
 }
 
 export function InstructionPanel() {
+  const toast = useToast();
   const { data: session, status: authStatus } = useSession();
   const { notifyPipelineSuccess } = useAuditRefresh();
   const { status: walletStatus, publicKey, isLoading: walletLoading } =
@@ -128,6 +130,7 @@ export function InstructionPanel() {
 
       if (!failedPipelineStep) {
         setGlobalError(error);
+        toast.error(error.error);
         setRuns((current) =>
           updateRun(current, runId, {
             status: "error",
@@ -153,6 +156,7 @@ export function InstructionPanel() {
           ),
         });
       });
+      toast.error(error.error);
       return;
     }
 
@@ -170,6 +174,7 @@ export function InstructionPanel() {
       instructionHashHex: result.data.instructionHashHex,
       stellarTxHash: result.data.stellarTxHash,
     });
+    toast.success("Instruction logged on-chain.");
   }
 
   async function handleRetryLogging() {
@@ -207,6 +212,7 @@ export function InstructionPanel() {
           ),
         }),
       );
+      toast.error(result.error.error);
       return;
     }
 
@@ -224,6 +230,7 @@ export function InstructionPanel() {
       instructionHashHex: result.data.instructionHashHex,
       stellarTxHash: result.data.stellarTxHash,
     });
+    toast.success("On-chain logging succeeded.");
   }
 
   const showRetryLogging =
@@ -232,15 +239,15 @@ export function InstructionPanel() {
     !!activeRun.error.retryLogging;
 
   return (
-    <div className="flex flex-1 flex-col px-4 py-8 sm:px-6 sm:py-12">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="mb-8 text-center sm:mb-10 sm:text-left">
+    <div className="flex min-w-0 flex-1 flex-col px-3 py-6 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full min-w-0 max-w-2xl">
+        <div className="mb-6 text-center sm:mb-10 sm:text-left">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
             What should flowm do?
           </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
-            Give one instruction in plain English. Watch the agent pipeline work
-            in real time.
+          <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:text-base">
+            Type one instruction in plain English. flowm runs it through three
+            agents and records the result on Stellar testnet.
           </p>
         </div>
 
@@ -256,22 +263,22 @@ export function InstructionPanel() {
             aria-label="Onboarding requirements"
           >
             <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-50">
-              Connect both accounts to send an instruction
+              Two quick steps before you start
             </h2>
             <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-              GitHub provides notification data. Your Freighter wallet links your
-              Stellar testnet identity for on-chain logging.
+              GitHub supplies your notification data. Freighter links your
+              Stellar testnet identity so actions can be attributed on-chain.
             </p>
             <ul className="mt-4 space-y-3">
               <RequirementItem
                 done={isGitHubReady}
                 title="Sign in with GitHub"
-                description="Required before the Send button is enabled."
+                description="Use the GitHub button in the header."
               />
               <RequirementItem
                 done={isWalletReady}
-                title="Connect Freighter wallet"
-                description="Required before the Send button is enabled."
+                title="Connect your Freighter wallet"
+                description="Use the Wallet button in the header (testnet)."
               />
             </ul>
           </section>
@@ -284,7 +291,7 @@ export function InstructionPanel() {
               aria-hidden
             />
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Checking your session...
+              Restoring your GitHub session and wallet connection...
             </p>
           </div>
         )}
@@ -295,11 +302,7 @@ export function InstructionPanel() {
             role="alert"
           >
             <p className="text-sm font-medium text-red-800 dark:text-red-200">
-              {globalError.step === "rate_limit"
-                ? "Rate limit reached"
-                : globalError.step === "auth"
-                  ? "Authentication required"
-                  : "Request failed"}
+              {pipelineErrorTitle(globalError.step)}
             </p>
             <p className="mt-1 text-sm text-red-700 dark:text-red-300">
               {globalError.error}
@@ -314,7 +317,7 @@ export function InstructionPanel() {
           <section className="mb-6 space-y-4">
             <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950 sm:p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Activity feed
+                Live activity
               </p>
               <div className="mt-3">
                 <ActivityFeed steps={activeRun.steps} />
@@ -327,7 +330,7 @@ export function InstructionPanel() {
                 role="alert"
               >
                 <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                  {activeRun.error.step} failed
+                  {pipelineErrorTitle(activeRun.error.step)}
                 </p>
                 <p className="mt-1 text-sm text-red-700 dark:text-red-300">
                   {activeRun.error.error}
@@ -339,7 +342,7 @@ export function InstructionPanel() {
                     disabled={isRetrying}
                     className="mt-3 inline-flex items-center justify-center rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 transition hover:bg-red-100 disabled:opacity-60 dark:border-red-800 dark:bg-red-950 dark:text-red-200 dark:hover:bg-red-900"
                   >
-                    {isRetrying ? "Retrying logging..." : "Retry logging"}
+                    {isRetrying ? "Retrying on-chain log..." : "Retry on-chain logging"}
                   </button>
                 )}
               </div>
@@ -355,7 +358,7 @@ export function InstructionPanel() {
                     rel="noopener noreferrer"
                     className="inline-flex text-sm font-medium text-zinc-900 underline underline-offset-2 dark:text-zinc-100"
                   >
-                    View on-chain proof
+                    View transaction on Stellar Expert
                   </a>
                 )}
               </div>
@@ -364,8 +367,9 @@ export function InstructionPanel() {
         )}
 
         {!activeRun && isReady && !isChecking && (
-          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-            Send your first instruction to see the live activity feed.
+          <p className="mb-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Try an instruction like &ldquo;Summarize my GitHub notifications&rdquo;
+            to see the live activity feed.
           </p>
         )}
 
@@ -391,17 +395,16 @@ export function InstructionPanel() {
           />
 
           {!isReady && !isChecking && (
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-              Send is disabled until GitHub sign-in and wallet connection are
-              complete.
+            <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+              Send stays disabled until GitHub and your wallet are connected.
             </p>
           )}
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-stretch sm:justify-end">
             <button
               type="submit"
               disabled={!isReady || isSubmitting || instruction.trim().length === 0}
-              className="inline-flex min-w-[6rem] items-center justify-center gap-2 rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
             >
               {isSubmitting ? (
                 <>
@@ -409,7 +412,7 @@ export function InstructionPanel() {
                     className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white dark:border-zinc-900/30 dark:border-t-zinc-900"
                     aria-hidden
                   />
-                  Sending
+                  Sending...
                 </>
               ) : (
                 "Send"
@@ -420,6 +423,27 @@ export function InstructionPanel() {
       </div>
     </div>
   );
+}
+
+function pipelineErrorTitle(
+  step: PipelineErrorResponse["step"],
+): string {
+  switch (step) {
+    case "interpreter":
+      return "Instruction not understood";
+    case "fetcher":
+      return "Could not fetch GitHub notifications";
+    case "actor":
+      return "On-chain logging failed";
+    case "auth":
+      return "Sign in required";
+    case "rate_limit":
+      return "Please wait before trying again";
+    case "validation":
+      return "Request could not be validated";
+    default:
+      return "Something went wrong";
+  }
 }
 
 function RequirementItem({

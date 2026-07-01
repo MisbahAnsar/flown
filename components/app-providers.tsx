@@ -3,14 +3,20 @@
 import type { ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 import { AuditRefreshProvider } from "@/components/audit/audit-refresh-context";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { ToastProvider } from "@/components/ui/toast";
 import { WalletProvider } from "@/components/wallet/wallet-provider";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
-      <WalletProvider>
-        <AuditRefreshProvider>{children}</AuditRefreshProvider>
-      </WalletProvider>
+      <ToastProvider>
+        <WalletProvider>
+          <AuditRefreshProvider>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </AuditRefreshProvider>
+        </WalletProvider>
+      </ToastProvider>
     </SessionProvider>
   );
 }

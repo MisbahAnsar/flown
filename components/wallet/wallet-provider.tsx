@@ -36,7 +36,7 @@ interface WalletContextValue {
   isLoading: boolean;
   error: string | null;
   errorCode: WalletErrorCode | null;
-  connect: () => Promise<void>;
+  connect: () => Promise<boolean>;
   disconnect: () => void;
   clearError: () => void;
 }
@@ -122,7 +122,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_DISCONNECTED, "true");
   }, [clearError]);
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (): Promise<boolean> => {
     setIsLoading(true);
     clearError();
 
@@ -132,7 +132,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setErrorCode("not_installed");
         setError("Freighter is not installed.");
         setStatus("disconnected");
-        return;
+        return false;
       }
 
       const access = await requestAccess();
@@ -143,7 +143,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setErrorCode(mapped.code);
         setError(mapped.message);
         setStatus("disconnected");
-        return;
+        return false;
       }
 
       const network = await getNetwork();
@@ -152,7 +152,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setErrorCode(mapped.code);
         setError(mapped.message);
         setStatus("disconnected");
-        return;
+        return false;
       }
 
       setPublicKey(access.address);
@@ -160,6 +160,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setIsTestnet(network.networkPassphrase === TESTNET_PASSPHRASE);
       setStatus("connected");
       localStorage.removeItem(STORAGE_DISCONNECTED);
+      return true;
     } catch (err) {
       const mapped = mapFreighterError(
         err instanceof Error ? { message: err.message } : {},
@@ -167,6 +168,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setErrorCode(mapped.code);
       setError(mapped.message);
       setStatus("disconnected");
+      return false;
     } finally {
       setIsLoading(false);
     }

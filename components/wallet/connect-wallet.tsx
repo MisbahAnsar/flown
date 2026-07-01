@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/ui/toast";
 import { FREIGHTER_INSTALL_URL } from "@/lib/stellar/constants";
 import { truncateAddress } from "@/lib/stellar/address";
 import { useWallet } from "./wallet-provider";
 
 export function ConnectWallet() {
+  const toast = useToast();
   const {
     status,
     publicKey,
@@ -21,6 +23,7 @@ export function ConnectWallet() {
 
   const [showInstallHint, setShowInstallHint] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const lastErrorRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (errorCode === "not_installed") {
@@ -29,6 +32,18 @@ export function ConnectWallet() {
     }
     setShowInstallHint(false);
   }, [errorCode]);
+
+  useEffect(() => {
+    if (!error || errorCode === "not_installed") {
+      lastErrorRef.current = null;
+      return;
+    }
+
+    if (lastErrorRef.current !== error) {
+      lastErrorRef.current = error;
+      toast.error(error);
+    }
+  }, [error, errorCode, toast]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -48,36 +63,46 @@ export function ConnectWallet() {
   async function handleConnect() {
     clearError();
     setShowInstallHint(false);
-    await connect();
+    lastErrorRef.current = null;
+
+    const connected = await connect();
+    if (connected) {
+      toast.success("Wallet connected on Stellar testnet.");
+    }
+  }
+
+  function handleDisconnect() {
+    disconnect();
+    toast.info("Wallet disconnected.");
   }
 
   if (status === "connected" && publicKey) {
     return (
-      <div className="flex flex-col items-end gap-1.5 sm:gap-2">
+      <div className="flex max-w-[11rem] flex-col items-end gap-1 sm:max-w-none sm:gap-1.5">
         {isTestnet === false && (
           <p
-            className="max-w-[14rem] text-right text-xs text-amber-600 dark:text-amber-400 sm:max-w-none"
+            className="text-right text-[11px] leading-tight text-amber-600 dark:text-amber-400 sm:text-xs"
             role="status"
           >
-            <span className="sm:hidden">Wrong network</span>
+            <span className="sm:hidden">Switch Freighter to testnet</span>
             <span className="hidden sm:inline">
               Freighter is not on testnet
               {networkName ? ` (${networkName})` : ""}. Switch to testnet in
-              Freighter.
+              Freighter to continue.
             </span>
           </p>
         )}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex max-w-full items-center gap-1 sm:gap-1.5">
           <span
-            className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:px-3 sm:text-sm"
+            className="max-w-[5.5rem] truncate rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1.5 font-mono text-[11px] text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:max-w-none sm:px-3 sm:py-1.5 sm:text-sm"
             title={publicKey}
           >
             {truncateAddress(publicKey, 4, 4)}
           </span>
           <button
             type="button"
-            onClick={disconnect}
-            className="rounded-full border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 sm:px-3 sm:text-sm"
+            onClick={handleDisconnect}
+            className="shrink-0 rounded-full border border-zinc-200 px-2 py-1.5 text-[11px] font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 sm:px-3 sm:text-sm"
           >
             <span className="sm:hidden" aria-label="Disconnect wallet">
               Exit
@@ -90,12 +115,12 @@ export function ConnectWallet() {
   }
 
   return (
-    <div ref={panelRef} className="relative flex flex-col items-end gap-1.5">
+    <div ref={panelRef} className="relative flex flex-col items-end">
       <button
         type="button"
         onClick={handleConnect}
         disabled={isLoading}
-        className="inline-flex min-w-[5.5rem] items-center justify-center gap-2 rounded-full bg-zinc-900 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 sm:min-w-0 sm:px-4 sm:py-2.5 sm:text-sm"
+        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-zinc-900 px-2.5 py-2 text-[11px] font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
       >
         {isLoading ? (
           <>
@@ -109,14 +134,14 @@ export function ConnectWallet() {
         ) : (
           <>
             <span className="hidden sm:inline">Connect Wallet</span>
-            <span className="sm:hidden">Connect</span>
+            <span className="sm:hidden">Wallet</span>
           </>
         )}
       </button>
 
       {error && errorCode !== "not_installed" && (
         <p
-          className="max-w-[14rem] text-right text-xs text-red-600 dark:text-red-400 sm:max-w-xs"
+          className="mt-1 max-w-[9rem] text-right text-[11px] leading-tight text-red-600 dark:text-red-400 sm:max-w-xs sm:text-xs"
           role="alert"
         >
           {error}
@@ -125,15 +150,15 @@ export function ConnectWallet() {
 
       {showInstallHint && errorCode === "not_installed" && (
         <div
-          className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+          className="absolute right-0 top-full z-50 mt-2 w-[min(18rem,calc(100vw-1.5rem))] rounded-xl border border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
           role="alert"
         >
           <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
             Freighter not found
           </p>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Install the Freighter browser extension to connect your Stellar
-            wallet.
+          <p className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Install the Freighter browser extension, then switch it to Stellar
+            testnet.
           </p>
           <a
             href={FREIGHTER_INSTALL_URL}

@@ -66,7 +66,7 @@ export function ActivityFeed({ steps }: { steps: FeedStep[] }) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2 sm:gap-y-0">
               <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {step.label}
               </p>

@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchAuditTrail } from "@/lib/stellar/audit-client";
 import type { AuditTrailAction, AuditTrailResponse } from "@/lib/stellar/audit-trail";
 import {
   stellarExpertContractUrl,
   stellarExpertTxUrl,
 } from "@/lib/pipeline/client";
+import { useToast } from "@/components/ui/toast";
 import { useAuditRefresh } from "./audit-refresh-context";
 
 const PAGE_SIZE = 10;
@@ -66,12 +67,12 @@ function AuditCard({
 }) {
   return (
     <article className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Action #{action.id}
           </p>
-          <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          <p className="mt-1 break-words text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             {action.agentId} / {action.actionType}
           </p>
         </div>
@@ -96,29 +97,51 @@ function AuditCard({
 }
 
 export function AuditTrailPanel() {
+  const toast = useToast();
   const { refreshToken, txHashByInstructionHash, refreshAuditTrail } =
     useAuditRefresh();
   const [page, setPage] = useState(0);
   const [data, setData] = useState<AuditTrailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const manualRefreshRef = useRef(false);
+  const lastErrorRef = useRef<string | null>(null);
 
-  const loadPage = useCallback(async (pageIndex: number) => {
-    setIsLoading(true);
-    setError(null);
+  const loadPage = useCallback(
+    async (pageIndex: number) => {
+      setIsLoading(true);
+      setError(null);
 
-    const result = await fetchAuditTrail(pageIndex * PAGE_SIZE, PAGE_SIZE);
+      const result = await fetchAuditTrail(pageIndex * PAGE_SIZE, PAGE_SIZE);
 
-    setIsLoading(false);
+      setIsLoading(false);
 
-    if (!result.ok) {
-      setError(result.error);
-      setData(null);
-      return;
-    }
+      if (!result.ok) {
+        setError(result.error);
+        setData(null);
+        if (lastErrorRef.current !== result.error) {
+          lastErrorRef.current = result.error;
+          toast.error(`Could not load audit trail — ${result.error}`);
+        }
+        manualRefreshRef.current = false;
+        return;
+      }
 
-    setData(result.data);
-  }, []);
+      lastErrorRef.current = null;
+      setData(result.data);
+
+      if (manualRefreshRef.current) {
+        manualRefreshRef.current = false;
+        toast.info("Audit trail updated.");
+      }
+    },
+    [toast],
+  );
+
+  function handleManualRefresh() {
+    manualRefreshRef.current = true;
+    refreshAuditTrail();
+  }
 
   useEffect(() => {
     void loadPage(page);
@@ -130,32 +153,30 @@ export function AuditTrailPanel() {
   const canGoNext = data ? page + 1 < totalPages : false;
 
   return (
-    <div className="flex flex-1 flex-col px-4 py-8 sm:px-6 sm:py-12">
-      <div className="mx-auto w-full max-w-4xl">
+    <div className="flex min-w-0 flex-1 flex-col px-3 py-6 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full min-w-0 max-w-4xl">
         <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
               Audit Trail
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
-              Every action logged on-chain by flowm. This is the full Soroban
-              contract history, verifiable on Stellar testnet.
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:text-base">
+              The full on-chain history from the Soroban contract. Every logged
+              action is public and verifiable on Stellar testnet.
             </p>
           </div>
           <button
             type="button"
-            onClick={() => {
-              refreshAuditTrail();
-            }}
+            onClick={handleManualRefresh}
             disabled={isLoading}
-            className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
+            className="inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-50 disabled:opacity-60 sm:w-auto dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
           >
-            Refresh
+            {isLoading ? "Refreshing..." : "Refresh"}
           </button>
         </div>
 
         {data?.contractId && (
-          <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mb-4 break-all text-xs leading-5 text-zinc-500 dark:text-zinc-400">
             Contract{" "}
             <a
               href={stellarExpertContractUrl(data.contractId)}
@@ -176,9 +197,11 @@ export function AuditTrailPanel() {
             role="alert"
           >
             <p className="text-sm font-medium text-red-800 dark:text-red-200">
-              Could not load audit trail
+              Stellar RPC unavailable
             </p>
-            <p className="mt-1 text-sm text-red-700 dark:text-red-300">{error}</p>
+            <p className="mt-1 text-sm leading-6 text-red-700 dark:text-red-300">
+              {error} Check your connection and try again.
+            </p>
             <button
               type="button"
               onClick={() => void loadPage(page)}
@@ -194,16 +217,16 @@ export function AuditTrailPanel() {
             <p className="text-base font-medium text-zinc-900 dark:text-zinc-100">
               No actions logged yet
             </p>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Run an instruction from the Chat tab to create the first on-chain
-              audit entry.
+            <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+              Send an instruction from the Chat tab. flowm will log the action
+              here automatically.
             </p>
           </div>
         )}
 
         {!isLoading && !error && data && data.totalCount > 0 && (
           <>
-            <div className="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 md:block">
+            <div className="hidden overflow-x-auto rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 md:block">
               <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
                 <thead className="bg-zinc-50 dark:bg-zinc-900/60">
                   <tr>
@@ -269,12 +292,12 @@ export function AuditTrailPanel() {
                 {Math.min(data.start + data.actions.length, data.totalCount)} of{" "}
                 {data.totalCount}
               </p>
-              <div className="flex gap-2">
+              <div className="flex w-full gap-2 sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setPage((current) => Math.max(0, current - 1))}
                   disabled={!canGoPrevious}
-                  className="rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100"
+                  className="flex-1 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 disabled:opacity-50 sm:flex-none dark:border-zinc-700 dark:text-zinc-100"
                 >
                   Previous
                 </button>
@@ -282,7 +305,7 @@ export function AuditTrailPanel() {
                   type="button"
                   onClick={() => setPage((current) => current + 1)}
                   disabled={!canGoNext}
-                  className="rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100"
+                  className="flex-1 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 disabled:opacity-50 sm:flex-none dark:border-zinc-700 dark:text-zinc-100"
                 >
                   Next
                 </button>

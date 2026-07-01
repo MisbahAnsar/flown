@@ -36,7 +36,7 @@ export function RunHistory({
     >
       <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          Session history
+          This session
         </h2>
       </div>
       <ul className="max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">

@@ -22,22 +22,22 @@ export const FEED_STEPS: Array<{
   {
     id: "interpreter",
     label: "Interpreter",
-    description: "Validating instruction",
+    description: "Understanding your instruction",
   },
   {
     id: "fetcher",
     label: "Fetcher",
-    description: "Reading GitHub notifications",
+    description: "Reading unread GitHub notifications",
   },
   {
     id: "actor",
     label: "Actor",
-    description: "Logging to Stellar and generating summary",
+    description: "Writing the audit log to Stellar",
   },
   {
     id: "done",
     label: "Done",
-    description: "Pipeline complete",
+    description: "All steps finished",
   },
 ];
 

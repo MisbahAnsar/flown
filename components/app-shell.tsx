@@ -10,9 +10,9 @@ export function AppShell() {
   const [activeTab, setActiveTab] = useState<AppTab>("chat");
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-w-0 flex-1 flex-col">
       <div className="border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-black/90">
-        <div className="mx-auto flex w-full max-w-6xl gap-2 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl min-w-0 gap-2 overflow-x-auto px-3 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
           <TabButton
             active={activeTab === "chat"}
             onClick={() => setActiveTab("chat")}
@@ -46,7 +46,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+      className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
         active
           ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
           : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
