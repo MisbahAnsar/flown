@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
+import { GitHubAuth } from "@/components/auth/github-auth";
 import { ConnectWallet } from "@/components/wallet/connect-wallet";
 
 export function AppHeader() {
@@ -9,11 +11,20 @@ export function AppHeader() {
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-lg"
+          className="shrink-0 text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-lg"
         >
           flowm
         </Link>
-        <ConnectWallet />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Suspense
+            fallback={
+              <div className="h-9 w-20 animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800 sm:h-10 sm:w-28" />
+            }
+          >
+            <GitHubAuth />
+          </Suspense>
+          <ConnectWallet />
+        </div>
       </div>
     </header>
   );

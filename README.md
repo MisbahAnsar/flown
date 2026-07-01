@@ -6,9 +6,20 @@ flowm is a Next.js app where a user gives one natural language instruction (for 
 
 1. Install dependencies: `bun install`
 2. Copy `.env.local.example` to `.env.local` and fill in the values.
-3. Install the [Freighter](https://www.freighter.app/) browser extension and switch it to **Testnet**. flowm requires Freighter to connect your Stellar wallet in the app header.
-4. Run the dev server: `bun dev`
-5. Open [http://localhost:3000](http://localhost:3000) and click **Connect Wallet**.
+3. Create a **GitHub OAuth App** at [github.com/settings/developers](https://github.com/settings/developers):
+   - **Application name**: `flowm` (or any local dev name)
+   - **Homepage URL**: `http://localhost:3000`
+   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github`
+   - Copy the **Client ID** into `GITHUB_ID` and generate a **Client secret** for `GITHUB_SECRET`
+   - flowm requests these scopes via NextAuth: `read:user`, `user:email`, `notifications`
+4. Generate a NextAuth secret and add it to `.env.local`:
+   ```bash
+   openssl rand -base64 32
+   ```
+   Set the output as `NEXTAUTH_SECRET` and keep `NEXTAUTH_URL=http://localhost:3000`.
+5. Install the [Freighter](https://www.freighter.app/) browser extension and switch it to **Testnet**.
+6. Run the dev server: `bun dev`
+7. Open [http://localhost:3000](http://localhost:3000), click **Sign in with GitHub**, then **Connect Wallet**. Both are required before running an instruction.
 
 ## Architecture
 
