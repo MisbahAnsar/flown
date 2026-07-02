@@ -12,6 +12,7 @@ const PLAIN_TEXT_RULES = [
   "Do not use bold (**), italics, or bullet lists unless absolutely necessary.",
   "Do not use em-dashes. Use commas or short sentences instead.",
   "Keep paragraphs short and easy to read.",
+  "Keep the full answer under 100 words. Be concise and always finish your last sentence.",
 ].join(" ");
 
 const MAX_NOTIFICATIONS_FOR_PROMPT = 25;

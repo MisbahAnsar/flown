@@ -76,6 +76,11 @@ function AgentStatusText({ steps }: { steps: FeedStep[] }) {
 
 function useStreamText(text: string | undefined, enabled: boolean) {
   const [streamed, setStreamed] = useState("");
+  const textRef = useRef(text);
+
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
 
   useEffect(() => {
     if (!enabled || !text) {
@@ -85,16 +90,23 @@ function useStreamText(text: string | undefined, enabled: boolean) {
 
     setStreamed("");
     let index = 0;
-    const chunkSize = 4;
+    const chunkSize = 6;
     const interval = window.setInterval(() => {
-      index += chunkSize;
-      setStreamed(text.slice(0, Math.min(index, text.length)));
-      if (index >= text.length) {
+      const fullText = textRef.current ?? "";
+      index = Math.min(index + chunkSize, fullText.length);
+      setStreamed(fullText.slice(0, index));
+      if (index >= fullText.length) {
         window.clearInterval(interval);
       }
-    }, 14);
+    }, 12);
 
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      const fullText = textRef.current ?? "";
+      if (fullText) {
+        setStreamed(fullText);
+      }
+    };
   }, [text, enabled]);
 
   return streamed;

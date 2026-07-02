@@ -39,7 +39,6 @@ export async function generateGeminiText(
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.35,
-          maxOutputTokens: 1024,
         },
       }),
     });
