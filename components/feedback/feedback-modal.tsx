@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useWallet } from "@/components/wallet/wallet-provider";
 import { submitFeedback } from "@/lib/feedback/client";
 import type { FeedbackRating, FeedbackSource } from "@/lib/feedback/types";
 import { FEEDBACK_COMMENT_MAX } from "@/lib/feedback/types";
@@ -23,6 +24,7 @@ export function FeedbackModal({
   title = "Send feedback",
 }: FeedbackModalProps) {
   const toast = useToast();
+  const { publicKey } = useWallet();
   const titleId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [rating, setRating] = useState<FeedbackRating | null>(
@@ -61,6 +63,7 @@ export function FeedbackModal({
       rating,
       comment: comment.trim() || undefined,
       source,
+      walletAddress: publicKey,
     });
     setIsSubmitting(false);
 
@@ -111,8 +114,8 @@ export function FeedbackModal({
         </div>
 
         <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          Help us improve flowms. Your message is stored in server logs and a
-          summary is sent to analytics — never your GitHub token or wallet keys.
+          Help us improve flowms. Your message is emailed to the team — never
+          your GitHub token or wallet keys.
         </p>
 
         <fieldset className="mt-5">

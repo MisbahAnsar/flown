@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useWallet } from "@/components/wallet/wallet-provider";
 import { submitFeedback } from "@/lib/feedback/client";
 import type { FeedbackRating } from "@/lib/feedback/types";
 import { FEEDBACK_COMMENT_MAX } from "@/lib/feedback/types";
@@ -17,6 +18,7 @@ export function PostSuccessFeedback({
   onDismiss,
 }: PostSuccessFeedbackProps) {
   const toast = useToast();
+  const { publicKey } = useWallet();
   const [showComment, setShowComment] = useState(false);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +36,7 @@ export function PostSuccessFeedback({
       rating,
       comment: note?.trim() || undefined,
       source: "post_success",
+      walletAddress: publicKey,
     });
     setIsSubmitting(false);
 

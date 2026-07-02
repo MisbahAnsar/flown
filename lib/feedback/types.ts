@@ -8,6 +8,7 @@ export const FeedbackRequestSchema = z.object({
   rating: FeedbackRatingSchema,
   comment: z.string().trim().max(500).optional(),
   source: FeedbackSourceSchema,
+  walletAddress: z.string().trim().min(1).max(128).optional().nullable(),
 });
 
 export type FeedbackRating = z.infer<typeof FeedbackRatingSchema>;

@@ -70,6 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${inter.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
       <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden bg-[#fafafa] text-zinc-900">

@@ -13,16 +13,16 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
       <ToastProvider>
-        <FeedbackProvider>
-          <WalletProvider>
+        <WalletProvider>
+          <FeedbackProvider>
             <AuditRefreshProvider>
               <ErrorBoundary>
                 <MonitoringShell />
                 {children}
               </ErrorBoundary>
             </AuditRefreshProvider>
-          </WalletProvider>
-        </FeedbackProvider>
+          </FeedbackProvider>
+        </WalletProvider>
       </ToastProvider>
     </SessionProvider>
   );

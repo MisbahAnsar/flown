@@ -1,4 +1,5 @@
 import { Client as SorobanClient, NULL_ACCOUNT } from "@stellar/stellar-sdk/contract";
+import { normalizeActionLogList } from "./contract-result";
 import type {
   ActionLogContractClient,
   OnChainActionLog,
@@ -101,9 +102,14 @@ export function createReadOnlyContractClient(
       try {
         const client = await getClient();
         const response = await client.get_actions({ start, limit });
+        const entries = normalizeActionLogList(response.result);
         return {
           success: true,
-          data: response.result.map(mapActionLog),
+          data: entries.map((entry) =>
+            mapActionLog(
+              entry as Parameters<typeof mapActionLog>[0],
+            ),
+          ),
         };
       } catch (error) {
         return {

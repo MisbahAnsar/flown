@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
+import { sendFeedbackEmail, isEmailJsConfigured } from "@/lib/feedback/emailjs";
 import { FeedbackRequestSchema } from "@/lib/feedback/types";
 
 /**
- * Persists feedback in Vercel Runtime Logs (structured JSON).
- * View in Vercel → Project → Logs, filter by `[flowms:feedback]`.
- * The client also emits a `feedback_submitted` Vercel Analytics event.
+ * Sends feedback via EmailJS and logs a structured copy in runtime logs.
+ *
+ * EmailJS setup:
+ * 1. Create a template with variables: {{name}} {{email}} {{message}}
+ *    plus optional {{rating}} {{rating_label}} {{comment}} {{source}}
+ *    {{submitted_at}} {{wallet_address}} {{title}}
+ *    See .env.local.example for a ready-to-paste template body.
+ * 2. Enable "Allow EmailJS API for non-browser applications" in EmailJS Account → Security
+ * 3. Set EMAILJS_* env vars (see .env.local.example)
  */
 export async function POST(request: Request) {
   let body: unknown;
@@ -26,17 +33,43 @@ export async function POST(request: Request) {
   }
 
   const { rating, comment, source } = parsed.data;
+  const payload = {
+    rating,
+    source,
+    walletAddress: parsed.data.walletAddress ?? null,
+    commentLength: comment?.length ?? 0,
+    comment: comment ?? null,
+    at: new Date().toISOString(),
+  };
 
-  console.info(
-    "[flowms:feedback]",
-    JSON.stringify({
+  if (isEmailJsConfigured()) {
+    const sent = await sendFeedbackEmail({
       rating,
-      source,
-      commentLength: comment?.length ?? 0,
       comment: comment ?? null,
-      at: new Date().toISOString(),
-    }),
-  );
+      source,
+      walletAddress: parsed.data.walletAddress ?? null,
+    });
+
+    if (!sent.ok) {
+      console.error("[flowms:feedback] EmailJS failed", sent.error);
+      return NextResponse.json(
+        { error: "Could not send feedback email. Please try again later." },
+        { status: 502 },
+      );
+    }
+  } else if (process.env.NODE_ENV === "production") {
+    console.error("[flowms:feedback] EmailJS is not configured in production");
+    return NextResponse.json(
+      { error: "Feedback delivery is not configured." },
+      { status: 503 },
+    );
+  } else {
+    console.warn(
+      "[flowms:feedback] EmailJS not configured — logging locally only",
+    );
+  }
+
+  console.info("[flowms:feedback]", JSON.stringify(payload));
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

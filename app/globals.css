@@ -33,3 +33,20 @@ body {
 .font-heading {
   font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
 }
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+label[for],
+select:not(:disabled),
+summary,
+[role="menuitem"],
+[role="option"] {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}

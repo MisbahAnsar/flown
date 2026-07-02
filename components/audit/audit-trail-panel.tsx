@@ -301,7 +301,7 @@ export function AuditTrailPanel() {
                   type="button"
                   onClick={() => setPage((current) => Math.max(0, current - 1))}
                   disabled={!canGoPrevious}
-                  className="flex-1 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 disabled:opacity-50 sm:flex-none dark:border-zinc-700 dark:text-zinc-100"
+                  className="flex-1 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
                 >
                   Previous
                 </button>
@@ -309,7 +309,7 @@ export function AuditTrailPanel() {
                   type="button"
                   onClick={() => setPage((current) => current + 1)}
                   disabled={!canGoNext}
-                  className="flex-1 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-900 disabled:opacity-50 sm:flex-none dark:border-zinc-700 dark:text-zinc-100"
+                  className="flex-1 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
                 >
                   Next
                 </button>

@@ -212,7 +212,7 @@ cd contracts && cargo test   # contract tests
 |---|---|
 | Page views & custom events | Vercel → Analytics → Events |
 | Pipeline / UI errors | Sentry (if `NEXT_PUBLIC_SENTRY_DSN` is set) |
-| User feedback | Vercel Runtime Logs (`[flowms:feedback]`) + `feedback_submitted` analytics event |
+| User feedback | EmailJS email to your inbox + Vercel Runtime Logs (`[flowms:feedback]`) + `feedback_submitted` analytics event |
 
 No GitHub tokens, private keys, instruction text, or wallet addresses are sent to analytics or Sentry. See [`lib/monitoring/scrub.ts`](./lib/monitoring/scrub.ts).
 

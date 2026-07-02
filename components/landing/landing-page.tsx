@@ -79,15 +79,17 @@ export function LandingPage() {
         </section>
 
         <section className="px-4 pb-20 sm:px-6">
-          <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-xl shadow-zinc-200/60">
-            <Image
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80"
-              alt="Agent pipeline dashboard preview"
-              width={1600}
-              height={900}
-              className="h-auto w-full object-cover"
-              priority
-            />
+          <div className="mx-auto w-[90%] max-w-[58rem] rounded-[1.75rem] border-[6px] border-[#fdfbf7] bg-[#fdfbf7] p-1 shadow-lg shadow-zinc-200/30 sm:p-1.5">
+            <div className="overflow-hidden rounded-[1.25rem]">
+              <Image
+                src="/landing/workspace-preview.png"
+                alt="flowms workspace with GitHub-connected chat and agent pipeline"
+                width={1600}
+                height={900}
+                className="h-auto w-full object-cover"
+                priority
+              />
+            </div>
           </div>
         </section>
 
