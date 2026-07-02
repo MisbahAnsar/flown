@@ -111,25 +111,13 @@ Build, test, and deploy instructions: [`contracts/README.md`](./contracts/README
 
 ## Screenshots
 
-Replace each placeholder with a captured PNG saved under `docs/screenshots/`.
+### Product (mobile)
 
-| Placeholder | What to capture |
+Landing page and workspace at ~390px width — sidebar stays collapsed until the user opens it.
+
+| Landing | Workspace |
 |---|---|
-| `[INSERT SCREENSHOT: desktop chat UI]` | Workspace view after a successful run — instruction input, live activity feed, summary, and Stellar Expert link |
-| `[INSERT SCREENSHOT: mobile view]` | Same flow at ~390px width — collapsible sidebar, chat input, stacked layout |
-| `[INSERT SCREENSHOT: audit trail]` | Audit Trail view from the sidebar — paginated on-chain history with proof links |
-| `[INSERT SCREENSHOT: analytics dashboard]` | Vercel → Project → Analytics — page views and custom events |
-
-Suggested filenames once captured:
-
-```
-docs/screenshots/desktop-chat.png
-docs/screenshots/mobile-view.png
-docs/screenshots/audit-trail.png
-docs/screenshots/analytics-dashboard.png
-```
-
-Then embed in this section, e.g. `![Desktop chat UI](./docs/screenshots/desktop-chat.png)`.
+| ![Mobile landing page](./docs/screenshots/mobile-landing.png) | ![Mobile workspace](./docs/screenshots/mobile-workspace.png) |
 
 ---
 
@@ -226,6 +214,20 @@ cd contracts && cargo test   # contract tests
 | User feedback | EmailJS email to your inbox + Vercel Runtime Logs (`[flowms:feedback]`) + `feedback_submitted` analytics event |
 
 No GitHub tokens, private keys, instruction text, or wallet addresses are sent to analytics or Sentry. See [`lib/monitoring/scrub.ts`](./lib/monitoring/scrub.ts).
+
+### User interaction
+
+Vercel Analytics during the demo period — **10 users online**, 8 visitors and 30 page views in the last 7 days:
+
+![Vercel Analytics — user interaction](./docs/screenshots/analytics-users.png)
+
+### Feedback (EmailJS)
+
+Feedback submitted from the app arrives in your inbox via EmailJS:
+
+| After instruction run | Feedback form |
+|---|---|
+| ![Feedback after instruction run](./docs/screenshots/feedback-after-run.png) | ![Feedback form submission](./docs/screenshots/feedback-form.png) |
 
 ---
 

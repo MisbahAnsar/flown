@@ -23,6 +23,7 @@ interface AppSidebarProps {
   onToggle: () => void;
   activeTab: AppTab;
   onTabChange: (tab: AppTab) => void;
+  className?: string;
 }
 
 const iconClass = "h-5 w-5 shrink-0";
@@ -32,6 +33,7 @@ export function AppSidebar({
   onToggle,
   activeTab,
   onTabChange,
+  className,
 }: AppSidebarProps) {
   const toast = useToast();
   const { data: session } = useSession();
@@ -63,7 +65,7 @@ export function AppSidebar({
     <aside
       className={`relative z-10 flex h-full min-h-0 shrink-0 flex-col border-r border-zinc-200 bg-white transition-[width] duration-300 ease-in-out ${
         open ? "w-56" : "w-14"
-      }`}
+      } ${className ?? ""}`}
     >
       <div
         className={`flex shrink-0 border-b border-zinc-100 ${
