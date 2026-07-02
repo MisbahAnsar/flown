@@ -8,11 +8,14 @@ Give flowms a plain-English instruction — for example, *"Summarize my GitHub n
 
 **Live demo:** [https://flowms.vercel.app](https://flowms.vercel.app)
 
+**Demo video:** [Watch on Google Drive](https://drive.google.com/file/d/1pQHD4FEMIa5Ko6Ebdc1rVr_O9cz1M8FK/view?usp=sharing)
+
 ---
 
 ## Table of contents
 
 - [Architecture](#architecture)
+- [Demo video](#demo-video)
 - [Tech stack](#tech-stack)
 - [Smart contract](#smart-contract)
 - [Screenshots](#screenshots)
@@ -52,6 +55,14 @@ flowchart LR
 **Signing model:** Soroban transactions are signed server-side with a dedicated testnet account (`STELLAR_SECRET_KEY`) so pipeline runs do not require repeated Freighter popups. Freighter is still required in the UI so users connect a Stellar testnet identity; the connected wallet gates API access.
 
 **Trust layer:** The Audit Trail panel calls `get_action_count` and `get_actions` directly against the deployed contract via Soroban RPC — not session history — so the log reflects everything recorded on-chain.
+
+---
+
+## Demo video
+
+Walkthrough of flowms (instruction run, agent pipeline, on-chain audit trail):
+
+**[flowms.mp4 on Google Drive](https://drive.google.com/file/d/1pQHD4FEMIa5Ko6Ebdc1rVr_O9cz1M8FK/view?usp=sharing)**
 
 ---
 

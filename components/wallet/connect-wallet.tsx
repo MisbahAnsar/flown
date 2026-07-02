@@ -124,7 +124,7 @@ export function ConnectWallet({
     variant === "landing"
       ? "inline-flex items-center justify-center gap-2 rounded-full bg-zinc-700 px-6 py-3 text-sm font-medium text-white transition hover:bg-zinc-600 disabled:opacity-60"
       : variant === "navbar"
-        ? "inline-flex items-center justify-center gap-2 rounded-full bg-zinc-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-600 disabled:opacity-60"
+        ? "inline-flex items-center justify-center gap-2 rounded-full bg-zinc-700 px-3 py-2 text-xs font-medium text-white transition hover:bg-zinc-600 disabled:opacity-60 sm:px-4 sm:text-sm"
         : "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-zinc-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-600 disabled:opacity-60 sm:px-4 sm:py-2.5";
 
   if (status === "connected" && publicKey) {
@@ -179,6 +179,11 @@ export function ConnectWallet({
               aria-hidden
             />
             Connecting...
+          </>
+        ) : variant === "navbar" ? (
+          <>
+            <span className="sm:hidden">Connect</span>
+            <span className="hidden sm:inline">Connect wallet</span>
           </>
         ) : (
           "Connect wallet"
